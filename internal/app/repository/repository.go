@@ -12,7 +12,7 @@ type CommonRepository interface {
 	ReadUser(username string) (*models.User, error)
 	CheckOrder(orderNum string) (*models.Order, error)
 	CreateOrder(order *models.Order) error
-	ReadOrders(userID uuid.UUID) ([]*models.OrderDB, error)
+	ReadOrders(userID uuid.UUID) ([]models.OrderDB, error)
 	ReadBalance(userID uuid.UUID) (*models.Balance, error)
 	CreateWithdrawal(withdraw *models.Withdraw) error
 	ReadAllWithdrawals(userID uuid.UUID) ([]*models.WithdrawDB, error)

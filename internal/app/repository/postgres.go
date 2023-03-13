@@ -149,8 +149,8 @@ func (pdb *PostgresDB) CreateOrder(order *models.Order) error {
 	return nil
 }
 
-func (pdb *PostgresDB) ReadOrders(userID uuid.UUID) ([]*models.OrderDB, error) {
-	orders := make([]*models.OrderDB, 0)
+func (pdb *PostgresDB) ReadOrders(userID uuid.UUID) ([]models.OrderDB, error) {
+	orders := make([]models.OrderDB, 0)
 	rows, err := pdb.pool.Query(context.Background(), "SELECT order_num, accrual, status, created_at FROM orders where user_id=$1 order by created_at;", userID)
 	if err != nil {
 		log.Println(err)
@@ -165,7 +165,7 @@ func (pdb *PostgresDB) ReadOrders(userID uuid.UUID) ([]*models.OrderDB, error) {
 			return nil, err
 		}
 
-		orders = append(orders, &order)
+		orders = append(orders, order)
 	}
 
 	if len(orders) == 0 {
