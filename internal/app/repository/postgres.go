@@ -105,7 +105,7 @@ func (pdb *PostgresDB) Ping() bool {
 
 func (pdb *PostgresDB) CreateUser(user *models.User) error {
 
-	_, err := pdb.pool.Exec(context.Background(), "INSERT INTO users (id, username, pass, cookie, cookie_expires) VALUES (:id, :username, :pass, :cookie, :cookie_expires) on conflict (username) do nothing ", &user)
+	_, err := pdb.pool.Exec(context.Background(), "INSERT INTO users (id, username, pass, cookie, cookie_expires) VALUES ($1, $2, $3, $4, $5) on conflict (username) do nothing", user.ID, user.Username, user.Password, user.Cookie, user.CookieExpires)
 
 	if err != nil && strings.Contains(err.Error(), pgerrcode.UniqueViolation) {
 		return exceptions.ErrDuplicatePK
@@ -140,7 +140,7 @@ func (pdb *PostgresDB) CheckOrder(orderNum string) (*models.Order, error) {
 }
 
 func (pdb *PostgresDB) CreateOrder(order *models.Order) error {
-	_, err := pdb.pool.Exec(context.Background(), "INSERT INTO orders (user_id, order_num, status) VALUES (:user_id, :order_num, :status) ON CONFLICT (order_num) DO NOTHING", &order)
+	_, err := pdb.pool.Exec(context.Background(), "INSERT INTO orders (user_id, order_num, status) VALUES ($1, $2, $3) ON CONFLICT (order_num) DO NOTHING", order.UserID, order.OrderNum, order.Status)
 
 	if err != nil && strings.Contains(err.Error(), pgerrcode.UniqueViolation) {
 		return exceptions.ErrDuplicatePK
@@ -187,7 +187,7 @@ func (pdb *PostgresDB) ReadBalance(userID uuid.UUID) (*models.Balance, error) {
 }
 
 func (pdb *PostgresDB) CreateWithdrawal(withdraw *models.Withdraw) error {
-	_, err := pdb.pool.Exec(context.Background(), "INSERT INTO withdrawals (user_id, order_num, withdraw) VALUES (:user_id, :order_num, :withdraw) ON CONFLICT (order_num) DO NOTHING", &withdraw)
+	_, err := pdb.pool.Exec(context.Background(), "INSERT INTO withdrawals (user_id, order_num, withdraw) VALUES ($1, $2, $3) ON CONFLICT (order_num) DO NOTHING", withdraw.UserID, withdraw.OrderNum, withdraw.Withdraw)
 
 	if err != nil && strings.Contains(err.Error(), pgerrcode.UniqueViolation) {
 		return exceptions.ErrDuplicatePK
