@@ -14,6 +14,10 @@ type Storage struct {
 func NewStorage(database string) (*Storage, error) {
 	if len(database) > 0 {
 		NewStorage := repository.NewPostgresDB(database)
+		err := NewStorage.MigrateToTheLatestSchema()
+		if err != nil {
+			return nil, err
+		}
 		fmt.Println("Using PostgreSQL Database")
 		return &Storage{
 			Repo: NewStorage,
