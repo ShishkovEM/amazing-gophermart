@@ -160,7 +160,7 @@ func (pdb *PostgresDB) ReadOrders(userID uuid.UUID) ([]*models.OrderDB, error) {
 	for rows.Next() {
 		var order *models.OrderDB
 
-		err := rows.Scan(order.OrderNum, order.Accrual, order.Status, order.Created)
+		err := rows.Scan(&order.OrderNum, &order.Accrual, &order.Status, &order.Created)
 		if err != nil {
 			return nil, err
 		}
