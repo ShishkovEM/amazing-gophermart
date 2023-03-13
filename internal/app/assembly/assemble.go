@@ -10,18 +10,18 @@ import (
 	"github.com/ShishkovEM/amazing-gophermart/internal/app/storage"
 )
 
-var cfg config.Config
+var gopherMartConfig config.Config
 
 func StartApplication() {
 
 	// Считывем конфигурацию приложения
-	cfg.Parse()
+	gopherMartConfig.Parse()
 
 	// Инициализируем хранилище
-	appStorage, dbErr := storage.NewStorage(cfg.Database)
+	appStorage, dbErr := storage.NewStorage(gopherMartConfig.Database)
 
 	// Инициализируем клинет
-	client := service.NewProcessingClient(cfg.AccrualSystem, "/api/orders")
+	client := service.NewProcessingClient(gopherMartConfig.AccrualSystem, "/api/orders")
 
 	// Иницилизируем каналы для обработки заказов
 	ordersToProcessingCh := make(chan string)
@@ -40,7 +40,7 @@ func StartApplication() {
 	log.Println(ping)
 
 	// Запусаем приложение
-	MainApp := server.NewServer(&cfg, appStorage)
+	MainApp := server.NewServer(&gopherMartConfig, appStorage)
 	if runErr := MainApp.Run(); runErr != nil {
 		log.Printf("%s", runErr.Error())
 	}

@@ -16,7 +16,7 @@ type Config struct {
 func (cfg *Config) Parse() {
 
 	// Считывает конфигурацию из переменных окружения
-	err := env.Parse(&cfg)
+	err := env.Parse(cfg)
 
 	if err != nil {
 		log.Fatal(err)
