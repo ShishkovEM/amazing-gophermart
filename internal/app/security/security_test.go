@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ShishkovEM/amazing-gophermart/internal/app/exceptions"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
@@ -48,7 +50,7 @@ func TestDecrypt(t *testing.T) {
 				secret:     secretKey,
 			},
 			want: want{
-				wantErr: ErrNotValidSing,
+				wantErr: exceptions.ErrNotValidSign,
 				equal:   false,
 			},
 		},

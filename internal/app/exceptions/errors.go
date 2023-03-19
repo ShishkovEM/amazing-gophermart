@@ -8,4 +8,5 @@ var (
 	ErrNoValues      = errors.New("no values from select")
 	ErrNoAuth        = errors.New("no Bearer token")
 	ErrNoCookie      = errors.New("no cookie")
+	ErrNotValidSign  = errors.New("sign is not valid")
 )

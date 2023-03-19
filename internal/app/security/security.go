@@ -4,15 +4,12 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"errors"
 	"log"
+
+	"github.com/ShishkovEM/amazing-gophermart/internal/app/exceptions"
 
 	"github.com/google/uuid"
 )
-
-var SecretKey = []byte("G0pher")
-
-var ErrNotValidSing = errors.New("sign is not valid")
 
 func Encrypt(uuid uuid.UUID, secret []byte) string {
 	h := hmac.New(sha256.New, secret)
@@ -34,7 +31,7 @@ func Decrypt(hashString string, secret []byte) (uuid.UUID, error) {
 	data, err = hex.DecodeString(hashString)
 	if err != nil {
 		log.Println(err)
-		return uuid.UUID{}, ErrNotValidSing
+		return uuid.UUID{}, exceptions.ErrNotValidSign
 	}
 	id, idErr := uuid.FromBytes(data[:16])
 	if idErr != nil {
@@ -47,6 +44,6 @@ func Decrypt(hashString string, secret []byte) (uuid.UUID, error) {
 	if hmac.Equal(sign, data[16:]) {
 		return id, nil
 	} else {
-		return uuid.UUID{}, ErrNotValidSing
+		return uuid.UUID{}, exceptions.ErrNotValidSign
 	}
 }
