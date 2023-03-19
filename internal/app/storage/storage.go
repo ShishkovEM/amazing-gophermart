@@ -11,10 +11,10 @@ type Storage struct {
 	Repo repository.CommonRepository
 }
 
-func NewStorage(database string) (*Storage, error) {
+func NewStorage(database string, migrationsDir string) (*Storage, error) {
 	if len(database) > 0 {
 		NewStorage := repository.NewPostgresDB(database)
-		err := NewStorage.MigrateToTheLatestSchema(database)
+		err := NewStorage.MigrateToTheLatestSchema(database, migrationsDir)
 		if err != nil {
 			return nil, err
 		}

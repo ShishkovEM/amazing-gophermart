@@ -17,7 +17,7 @@ import (
 )
 
 func TestPostOrder(t *testing.T) {
-	database, dbErr := storage.NewStorage("postgres://junvlkns:BKHdP45va97hTKwWld-6fg85etq62rP8@trumpet.db.elephantsql.com/junvlkns")
+	database, dbErr := storage.NewStorage("postgres://junvlkns:BKHdP45va97hTKwWld-6fg85etq62rP8@trumpet.db.elephantsql.com/junvlkns", migrationsDir)
 	var secretKey = []byte("G0pher")
 
 	userID := uuid.New()
@@ -158,7 +158,7 @@ func TestPostOrder(t *testing.T) {
 }
 
 func TestGetOrders(t *testing.T) {
-	database, dbErr := storage.NewStorage("postgres://junvlkns:BKHdP45va97hTKwWld-6fg85etq62rP8@trumpet.db.elephantsql.com/junvlkns")
+	database, dbErr := storage.NewStorage("postgres://junvlkns:BKHdP45va97hTKwWld-6fg85etq62rP8@trumpet.db.elephantsql.com/junvlkns", migrationsDir)
 	var secretKey = []byte("G0pher")
 
 	userID := uuid.New()

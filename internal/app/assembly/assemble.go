@@ -11,6 +11,7 @@ import (
 )
 
 var gopherMartConfig config.Config
+var migrationsDir = "file://./schema"
 
 func StartApplication() {
 
@@ -18,7 +19,7 @@ func StartApplication() {
 	gopherMartConfig.Parse()
 
 	// Инициализируем хранилище
-	appStorage, dbErr := storage.NewStorage(gopherMartConfig.Database)
+	appStorage, dbErr := storage.NewStorage(gopherMartConfig.Database, migrationsDir)
 
 	// Инициализируем клинет
 	client := service.NewProcessingClient(gopherMartConfig.AccrualSystem, "/api/orders")

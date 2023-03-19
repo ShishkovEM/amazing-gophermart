@@ -44,7 +44,7 @@ func (pdb *PostgresDB) Close() error {
 	return nil
 }
 
-func (pdb *PostgresDB) MigrateToTheLatestSchema(dsn string) error {
+func (pdb *PostgresDB) MigrateToTheLatestSchema(dsn string, sourceDDL string) error {
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		panic(err)
@@ -67,10 +67,7 @@ func (pdb *PostgresDB) MigrateToTheLatestSchema(dsn string) error {
 	}
 	databaseName := databasePath.Path[1:]
 
-	m, mErr := migrate.NewWithDatabaseInstance(
-		"file://./schema",
-		databaseName, driver,
-	)
+	m, mErr := migrate.NewWithDatabaseInstance(sourceDDL, databaseName, driver)
 	if mErr != nil {
 		panic(mErr)
 	}
