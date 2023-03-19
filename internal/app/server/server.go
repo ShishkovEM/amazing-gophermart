@@ -19,7 +19,7 @@ type Server struct {
 
 func NewServer(cfg *config.Config, storage *storage.Storage) *Server {
 
-	routes := controllers.Routes(storage)
+	routes := controllers.Routes(storage, []byte(cfg.SecretKey))
 	server := http.Server{
 		Addr:         cfg.ServerAddress,
 		Handler:      routes,

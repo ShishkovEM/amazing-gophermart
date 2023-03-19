@@ -19,7 +19,7 @@ import (
 
 const timeLayout = "2006-01-02 15:04:05"
 
-func UserRegistration(storage *storage.Storage) http.HandlerFunc {
+func UserRegistration(storage *storage.Storage, secretKey []byte) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		headerContentType := r.Header.Get("Content-Type")
 		if !strings.Contains("application/json, application/x-gzip", headerContentType) {
@@ -50,7 +50,7 @@ func UserRegistration(storage *storage.Storage) http.HandlerFunc {
 		}
 
 		userID := uuid.New()
-		userCookie, userCookieExp := GenerateCookie(userID)
+		userCookie, userCookieExp := GenerateCookie(userID, secretKey)
 		hashedPassword, bcrypteErr := bcrypt.GenerateFromPassword([]byte(user.Password), 4)
 		if bcrypteErr != nil {
 			log.Println(bcrypteErr)

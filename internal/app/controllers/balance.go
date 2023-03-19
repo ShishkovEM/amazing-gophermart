@@ -12,7 +12,7 @@ import (
 	"github.com/ShishkovEM/amazing-gophermart/internal/app/storage"
 )
 
-func GetBalance(sorage *storage.Storage) http.HandlerFunc {
+func GetBalance(storage *storage.Storage, secretKey []byte) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		headerContentType := r.Header.Get("Content-Length")
 		if len(headerContentType) != 0 {
@@ -21,13 +21,13 @@ func GetBalance(sorage *storage.Storage) http.HandlerFunc {
 		}
 
 		// Проверка авторизации по токену
-		userID, tokenErr := GetToken(r)
+		userID, tokenErr := GetToken(r, secretKey)
 		if tokenErr != nil {
 			messageResponse(w, "User unauthorized: "+tokenErr.Error(), "application/json", http.StatusUnauthorized)
 			return
 		}
 
-		balance, balanceErr := sorage.Repo.ReadBalance(userID)
+		balance, balanceErr := storage.Repo.ReadBalance(userID)
 		if balanceErr != nil {
 			messageResponse(w, "Internal Server Error: "+balanceErr.Error(), "application/json", http.StatusInternalServerError)
 			return
@@ -44,7 +44,7 @@ func GetBalance(sorage *storage.Storage) http.HandlerFunc {
 	}
 }
 
-func Withdraw(storage *storage.Storage) http.HandlerFunc {
+func Withdraw(storage *storage.Storage, secretKey []byte) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		headerContentType := r.Header.Get("Content-Type")
 		if !strings.Contains("application/json, application/x-gzip", headerContentType) {
@@ -53,7 +53,7 @@ func Withdraw(storage *storage.Storage) http.HandlerFunc {
 		}
 
 		// Проверка авторизации по токену
-		userID, tokenErr := GetToken(r)
+		userID, tokenErr := GetToken(r, secretKey)
 		if tokenErr != nil {
 			messageResponse(w, "User unauthorized: "+tokenErr.Error(), "application/json", http.StatusUnauthorized)
 			return
@@ -118,7 +118,7 @@ func Withdraw(storage *storage.Storage) http.HandlerFunc {
 	}
 }
 
-func GetAllWithdrawals(storage *storage.Storage) http.HandlerFunc {
+func GetAllWithdrawals(storage *storage.Storage, secretKey []byte) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		headerContentType := r.Header.Get("Content-Length")
 		if len(headerContentType) != 0 {
@@ -127,7 +127,7 @@ func GetAllWithdrawals(storage *storage.Storage) http.HandlerFunc {
 		}
 
 		// Проверка авторизации по токену
-		userID, tokenErr := GetToken(r)
+		userID, tokenErr := GetToken(r, secretKey)
 		if tokenErr != nil {
 			messageResponse(w, "User unauthorized: "+tokenErr.Error(), "application/json", http.StatusUnauthorized)
 			return

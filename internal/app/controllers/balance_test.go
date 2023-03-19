@@ -18,9 +18,10 @@ import (
 
 func TestGetBalance(t *testing.T) {
 	database, dbErr := storage.NewStorage("postgres://junvlkns:BKHdP45va97hTKwWld-6fg85etq62rP8@trumpet.db.elephantsql.com/junvlkns")
+	var secretKey = []byte("G0pher")
 
 	userID := uuid.New()
-	cookie, cookieExpires := GenerateCookie(userID)
+	cookie, cookieExpires := GenerateCookie(userID, secretKey)
 	hashedPassword, bcrypteErr := bcrypt.GenerateFromPassword([]byte("123"), 4)
 	if bcrypteErr != nil {
 		log.Println(bcrypteErr)
@@ -74,7 +75,7 @@ func TestGetBalance(t *testing.T) {
 			},
 		},
 	}
-	Routes := *Routes(database)
+	Routes := *Routes(database, secretKey)
 	ts := httptest.NewServer(&Routes)
 	defer ts.Close()
 
@@ -103,9 +104,10 @@ func TestGetBalance(t *testing.T) {
 
 func TestWithdraws(t *testing.T) {
 	database, dbErr := storage.NewStorage("postgres://junvlkns:BKHdP45va97hTKwWld-6fg85etq62rP8@trumpet.db.elephantsql.com/junvlkns")
+	var secretKey = []byte("G0pher")
 
 	userID := uuid.New()
-	cookie, cookieExpires := GenerateCookie(userID)
+	cookie, cookieExpires := GenerateCookie(userID, secretKey)
 	hashedPassword, bcrypteErr := bcrypt.GenerateFromPassword([]byte("123"), 4)
 	if bcrypteErr != nil {
 		log.Println(bcrypteErr)
@@ -205,7 +207,7 @@ func TestWithdraws(t *testing.T) {
 			},
 		},
 	}
-	Routes := *Routes(database)
+	Routes := *Routes(database, secretKey)
 	ts := httptest.NewServer(&Routes)
 	defer ts.Close()
 

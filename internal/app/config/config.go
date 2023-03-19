@@ -11,6 +11,7 @@ type Config struct {
 	ServerAddress string `env:"RUN_ADDRESS" envDefault:"localhost:8080"`
 	Database      string `env:"DATABASE_URI"`
 	AccrualSystem string `env:"ACCRUAL_SYSTEM_ADDRESS"`
+	SecretKey     string `env:"SECRET_KEY" envDefault:"G0pher"`
 }
 
 func (cfg *Config) Parse() {
@@ -26,6 +27,7 @@ func (cfg *Config) Parse() {
 	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "host:port to listen on")
 	flag.StringVar(&cfg.Database, "d", cfg.Database, "database config")
 	flag.StringVar(&cfg.AccrualSystem, "r", cfg.AccrualSystem, "address of the accrual system")
+	flag.StringVar(&cfg.SecretKey, "s", cfg.SecretKey, "secret key")
 	flag.Parse()
 
 	log.Printf("%+v\n", cfg)

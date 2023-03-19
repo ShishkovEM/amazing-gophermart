@@ -13,7 +13,7 @@ import (
 	"github.com/ShishkovEM/amazing-gophermart/internal/app/storage"
 )
 
-func PostOrder(storage *storage.Storage) http.HandlerFunc {
+func PostOrder(storage *storage.Storage, secretKey []byte) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		headerContentType := r.Header.Get("Content-Type")
 		if !strings.Contains("text/plain", headerContentType) {
@@ -22,7 +22,7 @@ func PostOrder(storage *storage.Storage) http.HandlerFunc {
 		}
 
 		// Проверка авторизации по токену
-		userID, tokenErr := GetToken(r)
+		userID, tokenErr := GetToken(r, secretKey)
 		if tokenErr != nil {
 			messageResponse(w, "User unauthorized: "+tokenErr.Error(), "application/json", http.StatusUnauthorized)
 			return
@@ -82,7 +82,7 @@ func PostOrder(storage *storage.Storage) http.HandlerFunc {
 	}
 }
 
-func GetOrders(storage *storage.Storage) http.HandlerFunc {
+func GetOrders(storage *storage.Storage, secretKey []byte) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		headerContentType := r.Header.Get("Content-Length")
 		if len(headerContentType) != 0 {
@@ -91,7 +91,7 @@ func GetOrders(storage *storage.Storage) http.HandlerFunc {
 		}
 
 		// Проверка авторизации по токену
-		userID, tokenErr := GetToken(r)
+		userID, tokenErr := GetToken(r, secretKey)
 		if tokenErr != nil {
 			messageResponse(w, "User unauthorized: "+tokenErr.Error(), "application/json", http.StatusUnauthorized)
 			return

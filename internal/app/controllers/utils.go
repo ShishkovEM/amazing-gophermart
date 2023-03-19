@@ -53,14 +53,14 @@ func readBodyBytes(r *http.Request) (io.ReadCloser, error) {
 	}
 }
 
-func GenerateCookie(userID uuid.UUID) (http.Cookie, time.Time) {
-	session := security.Encrypt(userID, security.SecretKey)
+func GenerateCookie(userID uuid.UUID, secretKey []byte) (http.Cookie, time.Time) {
+	session := security.Encrypt(userID, secretKey)
 	expiration := time.Now().Add(365 * 24 * time.Hour)
 	cookie := http.Cookie{Name: "session", Value: session, Expires: expiration, Path: "/"}
 	return cookie, expiration
 }
 
-func GetToken(r *http.Request) (uuid.UUID, error) {
+func GetToken(r *http.Request, secretKey []byte) (uuid.UUID, error) {
 	auth := r.Header.Get("Authorization")
 	if len(auth) == 0 {
 		return uuid.UUID{}, exceptions.ErrNoAuth
@@ -70,7 +70,7 @@ func GetToken(r *http.Request) (uuid.UUID, error) {
 		return uuid.UUID{}, exceptions.ErrNoAuth
 	}
 	authToken := tokenValue[1]
-	userID, tokenDecryptErr := security.Decrypt(authToken, security.SecretKey)
+	userID, tokenDecryptErr := security.Decrypt(authToken, secretKey)
 	if tokenDecryptErr != nil {
 		return uuid.UUID{}, tokenDecryptErr
 	}

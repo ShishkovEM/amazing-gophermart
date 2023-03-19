@@ -18,9 +18,10 @@ import (
 
 func TestPostOrder(t *testing.T) {
 	database, dbErr := storage.NewStorage("postgres://junvlkns:BKHdP45va97hTKwWld-6fg85etq62rP8@trumpet.db.elephantsql.com/junvlkns")
+	var secretKey = []byte("G0pher")
 
 	userID := uuid.New()
-	cookie, cookieExpires := GenerateCookie(userID)
+	cookie, cookieExpires := GenerateCookie(userID, secretKey)
 	hashedPassword, bcrypteErr := bcrypt.GenerateFromPassword([]byte("123"), 4)
 	if bcrypteErr != nil {
 		log.Println(bcrypteErr)
@@ -40,7 +41,7 @@ func TestPostOrder(t *testing.T) {
 	}
 
 	subUserID := uuid.New()
-	subCookie, subCookieExpires := GenerateCookie(subUserID)
+	subCookie, subCookieExpires := GenerateCookie(subUserID, secretKey)
 	subHashedPassword, subBcrypteErr := bcrypt.GenerateFromPassword([]byte("123"), 4)
 	if subBcrypteErr != nil {
 		log.Println(subBcrypteErr)
@@ -129,7 +130,7 @@ func TestPostOrder(t *testing.T) {
 			},
 		},
 	}
-	Routes := *Routes(database)
+	Routes := *Routes(database, secretKey)
 	ts := httptest.NewServer(&Routes)
 	defer ts.Close()
 
@@ -158,9 +159,10 @@ func TestPostOrder(t *testing.T) {
 
 func TestGetOrders(t *testing.T) {
 	database, dbErr := storage.NewStorage("postgres://junvlkns:BKHdP45va97hTKwWld-6fg85etq62rP8@trumpet.db.elephantsql.com/junvlkns")
+	var secretKey = []byte("G0pher")
 
 	userID := uuid.New()
-	cookie, cookieExpires := GenerateCookie(userID)
+	cookie, cookieExpires := GenerateCookie(userID, secretKey)
 	hashedPassword, bcrypteErr := bcrypt.GenerateFromPassword([]byte("123"), 4)
 	if bcrypteErr != nil {
 		log.Println(bcrypteErr)
@@ -179,7 +181,7 @@ func TestGetOrders(t *testing.T) {
 	}
 
 	subUserID := uuid.New()
-	subCookie, subCookieExpires := GenerateCookie(subUserID)
+	subCookie, subCookieExpires := GenerateCookie(subUserID, secretKey)
 	subHashedPassword, subBcrypteErr := bcrypt.GenerateFromPassword([]byte("123"), 4)
 	if subBcrypteErr != nil {
 		log.Println(subBcrypteErr)
@@ -251,7 +253,7 @@ func TestGetOrders(t *testing.T) {
 			},
 		},
 	}
-	Routes := *Routes(database)
+	Routes := *Routes(database, secretKey)
 	ts := httptest.NewServer(&Routes)
 	defer ts.Close()
 
