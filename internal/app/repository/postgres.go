@@ -22,7 +22,6 @@ import (
 )
 
 type PostgresDB struct {
-	dsn  string
 	pool *pgxpool.Pool
 }
 
@@ -32,21 +31,7 @@ func NewPostgresDB(dsn string) *PostgresDB {
 		log.Fatalf("Unable to connection to database: %v\n", err)
 	}
 	log.Printf("Connected!")
-	return &PostgresDB{dsn: dsn, pool: pool}
-}
-
-func (pdb *PostgresDB) GetConn() (*pgxpool.Conn, error) {
-	if pdb.dsn == "" {
-		return nil, exceptions.ErrNoDatabaseDSN
-	}
-
-	conn, err := pdb.pool.Acquire(context.Background())
-	if err != nil {
-		log.Fatalf("Unable to acquire a database connection: %v\n", err)
-		return nil, err
-	}
-
-	return conn, nil
+	return &PostgresDB{pool: pool}
 }
 
 func (pdb *PostgresDB) Close() error {
@@ -59,8 +44,8 @@ func (pdb *PostgresDB) Close() error {
 	return nil
 }
 
-func (pdb *PostgresDB) MigrateToTheLatestSchema() error {
-	db, err := sql.Open("postgres", pdb.dsn)
+func (pdb *PostgresDB) MigrateToTheLatestSchema(dsn string) error {
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		panic(err)
 	}
@@ -76,7 +61,7 @@ func (pdb *PostgresDB) MigrateToTheLatestSchema() error {
 		panic(err)
 	}
 
-	databasePath, err := url.Parse(pdb.dsn)
+	databasePath, err := url.Parse(dsn)
 	if err != nil {
 		panic(err)
 	}
