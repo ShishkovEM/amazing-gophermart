@@ -37,7 +37,7 @@ func (cfg *Config) Parse() {
 	flag.StringVar(&cfg.ExpBackOffInitialAmount, "e", cfg.ExpBackOffInitialAmount, "100ms")
 	flag.StringVar(&cfg.CoolDownDuration, "c", cfg.CoolDownDuration, "60s")
 	flag.StringVar(&cfg.ServerReadTimeout, "o", cfg.ServerReadTimeout, "60s")
-	flag.StringVar(&cfg.ServerWriteTimeout, "o", cfg.ServerWriteTimeout, "60s")
+	flag.StringVar(&cfg.ServerWriteTimeout, "k", cfg.ServerWriteTimeout, "60s")
 	flag.Parse()
 
 	log.Printf("%+v\n", cfg)
