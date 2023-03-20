@@ -21,9 +21,9 @@ func GetOrdersToProcessing(storage storage.Storage, ordersCh chan string) {
 	}
 }
 
-func GetProcessedInfo(client *ProcessingClient, ordersCh chan string, procesedCh chan models.ProcessingOrder) {
+func GetProcessedInfo(client *ProcessingClient, ordersCh chan string, procesedCh chan models.ProcessingOrder, cooldownDuration string) {
 	for order := range ordersCh {
-		if orderInfo, orderInfoErr := client.GetOrder(order); orderInfoErr == nil {
+		if orderInfo, orderInfoErr := client.GetOrder(order, cooldownDuration); orderInfoErr == nil {
 			procesedCh <- orderInfo
 		}
 	}

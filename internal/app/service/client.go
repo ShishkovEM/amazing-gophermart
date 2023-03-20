@@ -25,19 +25,21 @@ type ProcessingClient struct {
 	Client *gentleman.Client
 }
 
-func NewProcessingClient(serviceAddress, basicURL string) *ProcessingClient {
+func NewProcessingClient(serviceAddress, basicURL string, requestTimeout string, expBackOffInitialAmount string) *ProcessingClient {
 	log.Println("LoyalityServer: ", serviceAddress+basicURL)
 	cli := gentleman.New()
 	cli.Use(logger.New(os.Stdout))
-	cli.Use(timeout.Request(60 * time.Second))
-	cli.Use(retry.New(retrier.New(retrier.ExponentialBackoff(5, 100*time.Millisecond), nil)))
+	timeoutDuration, _ := time.ParseDuration(requestTimeout)
+	cli.Use(timeout.Request(timeoutDuration))
+	expBackOffInitialAmountDuration, _ := time.ParseDuration(expBackOffInitialAmount)
+	cli.Use(retry.New(retrier.New(retrier.ExponentialBackoff(5, expBackOffInitialAmountDuration), nil)))
 	cli.URL(serviceAddress + basicURL)
 	return &ProcessingClient{
 		Client: cli,
 	}
 }
 
-func (pc *ProcessingClient) GetOrder(orderNum string) (models.ProcessingOrder, error) {
+func (pc *ProcessingClient) GetOrder(orderNum string, cooldownDuration string) (models.ProcessingOrder, error) {
 	req := pc.Client.Request()
 	req.Method("GET")
 	req.AddPath(fmt.Sprintf("/%s", orderNum))
@@ -46,6 +48,7 @@ func (pc *ProcessingClient) GetOrder(orderNum string) (models.ProcessingOrder, e
 	if err != nil {
 		return order, err
 	}
+	cooldown, _ := time.ParseDuration(cooldownDuration)
 
 	switch res.StatusCode {
 	case http.StatusInternalServerError:
@@ -53,7 +56,7 @@ func (pc *ProcessingClient) GetOrder(orderNum string) (models.ProcessingOrder, e
 		return order, ErrInternalServer
 	case http.StatusTooManyRequests:
 		log.Printf("Too Many Requests: %d\n", res.StatusCode)
-		time.Sleep(time.Second * 60)
+		time.Sleep(time.Second * cooldown)
 	case http.StatusOK:
 		if UnmarshErr := json.Unmarshal(res.Bytes(), &order); UnmarshErr != nil {
 			return order, UnmarshErr

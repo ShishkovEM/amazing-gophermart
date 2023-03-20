@@ -18,13 +18,15 @@ type Server struct {
 }
 
 func NewServer(cfg *config.Config, storage *storage.Storage) *Server {
+	serverReadTimeout, _ := time.ParseDuration(cfg.ServerReadTimeout)
+	serverWriteTimeout, _ := time.ParseDuration(cfg.ServerWriteTimeout)
 
 	routes := controllers.Routes(storage, []byte(cfg.SecretKey))
 	server := http.Server{
 		Addr:         cfg.ServerAddress,
 		Handler:      routes,
-		ReadTimeout:  time.Second * 60,
-		WriteTimeout: time.Second * 60,
+		ReadTimeout:  serverReadTimeout,
+		WriteTimeout: serverWriteTimeout,
 	}
 	return &Server{
 		httpServer: &server,

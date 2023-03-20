@@ -1,9 +1,9 @@
 package storage
 
 import (
-	"errors"
 	"fmt"
 
+	"github.com/ShishkovEM/amazing-gophermart/internal/app/exceptions"
 	"github.com/ShishkovEM/amazing-gophermart/internal/app/repository"
 )
 
@@ -24,6 +24,6 @@ func NewStorage(database string, migrationsDir string) (*Storage, error) {
 		}, nil
 	}
 
-	return &Storage{}, errors.New("no database config found")
+	return &Storage{}, exceptions.ErrNoDatabaseDSN
 
 }

@@ -22,7 +22,7 @@ func StartApplication() {
 	appStorage, dbErr := storage.NewStorage(gopherMartConfig.Database, migrationsDir)
 
 	// Инициализируем клинет
-	client := service.NewProcessingClient(gopherMartConfig.AccrualSystem, "/api/orders")
+	client := service.NewProcessingClient(gopherMartConfig.AccrualSystem, "/api/orders", gopherMartConfig.RequestTimeout, gopherMartConfig.ExpBackOffInitialAmount)
 
 	// Иницилизируем каналы для обработки заказов
 	ordersToProcessingCh := make(chan string)
@@ -30,7 +30,7 @@ func StartApplication() {
 
 	// Запускаем процессы обработки заказов
 	go service.GetOrdersToProcessing(*appStorage, ordersToProcessingCh)
-	go service.GetProcessedInfo(client, ordersToProcessingCh, ordersProcessedCh)
+	go service.GetProcessedInfo(client, ordersToProcessingCh, ordersProcessedCh, gopherMartConfig.CoolDownDuration)
 	go service.ApplyLoyalty(*appStorage, ordersProcessedCh)
 	if dbErr != nil {
 		log.Fatal(dbErr)

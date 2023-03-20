@@ -8,10 +8,15 @@ import (
 )
 
 type Config struct {
-	ServerAddress string `env:"RUN_ADDRESS" envDefault:"localhost:8080"`
-	Database      string `env:"DATABASE_URI"`
-	AccrualSystem string `env:"ACCRUAL_SYSTEM_ADDRESS"`
-	SecretKey     string `env:"SECRET_KEY" envDefault:"G0pher"`
+	ServerAddress           string `env:"RUN_ADDRESS" envDefault:"localhost:8080"`
+	Database                string `env:"DATABASE_URI"`
+	AccrualSystem           string `env:"ACCRUAL_SYSTEM_ADDRESS"`
+	SecretKey               string `env:"SECRET_KEY" envDefault:"G0pher"`
+	RequestTimeout          string `env:"REQUEST_TIMEOUT_SECONDS" envDefault:"60s"`
+	ExpBackOffInitialAmount string `env:"EXP_BACKOFF_MILLIS" envDefault:"100ms"`
+	CoolDownDuration        string `env:"COOLDOWN_DURATION_SECONDS" envDefault:"60s"`
+	ServerReadTimeout       string `env:"SERVER_READ_TIMEOUT" envDefault:"60s"`
+	ServerWriteTimeout      string `env:"SERVER_WRITE_TIMEOUT" envDefault:"60s"`
 }
 
 func (cfg *Config) Parse() {
@@ -28,6 +33,11 @@ func (cfg *Config) Parse() {
 	flag.StringVar(&cfg.Database, "d", cfg.Database, "database config")
 	flag.StringVar(&cfg.AccrualSystem, "r", cfg.AccrualSystem, "address of the accrual system")
 	flag.StringVar(&cfg.SecretKey, "s", cfg.SecretKey, "secret key")
+	flag.StringVar(&cfg.RequestTimeout, "t", cfg.RequestTimeout, "60s")
+	flag.StringVar(&cfg.ExpBackOffInitialAmount, "e", cfg.ExpBackOffInitialAmount, "100ms")
+	flag.StringVar(&cfg.CoolDownDuration, "c", cfg.CoolDownDuration, "60s")
+	flag.StringVar(&cfg.ServerReadTimeout, "o", cfg.ServerReadTimeout, "60s")
+	flag.StringVar(&cfg.ServerWriteTimeout, "o", cfg.ServerWriteTimeout, "60s")
 	flag.Parse()
 
 	log.Printf("%+v\n", cfg)
