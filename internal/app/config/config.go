@@ -17,6 +17,7 @@ type Config struct {
 	CoolDownDuration        string `env:"COOLDOWN_DURATION_SECONDS" envDefault:"60s"`
 	ServerReadTimeout       string `env:"SERVER_READ_TIMEOUT" envDefault:"60s"`
 	ServerWriteTimeout      string `env:"SERVER_WRITE_TIMEOUT" envDefault:"60s"`
+	CookieLifeTime          string `env:"COOKIE_LIFETIME" envDefault:"8760h"`
 }
 
 func (cfg *Config) Parse() {
@@ -38,6 +39,7 @@ func (cfg *Config) Parse() {
 	flag.StringVar(&cfg.CoolDownDuration, "c", cfg.CoolDownDuration, "60s")
 	flag.StringVar(&cfg.ServerReadTimeout, "o", cfg.ServerReadTimeout, "60s")
 	flag.StringVar(&cfg.ServerWriteTimeout, "k", cfg.ServerWriteTimeout, "60s")
+	flag.StringVar(&cfg.CookieLifeTime, "l", cfg.CookieLifeTime, "8760h")
 	flag.Parse()
 
 	log.Printf("%+v\n", cfg)

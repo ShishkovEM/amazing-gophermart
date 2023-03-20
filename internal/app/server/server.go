@@ -21,7 +21,7 @@ func NewServer(cfg *config.Config, storage *storage.Storage) *Server {
 	serverReadTimeout, _ := time.ParseDuration(cfg.ServerReadTimeout)
 	serverWriteTimeout, _ := time.ParseDuration(cfg.ServerWriteTimeout)
 
-	routes := controllers.Routes(storage, []byte(cfg.SecretKey))
+	routes := controllers.Routes(storage, []byte(cfg.SecretKey), cfg.CookieLifeTime)
 	server := http.Server{
 		Addr:         cfg.ServerAddress,
 		Handler:      routes,

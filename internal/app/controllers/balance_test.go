@@ -21,7 +21,7 @@ func TestGetBalance(t *testing.T) {
 	var secretKey = []byte("G0pher")
 
 	userID := uuid.New()
-	cookie, cookieExpires := GenerateCookie(userID, secretKey)
+	cookie, cookieExpires := GenerateCookie(userID, secretKey, "10h")
 	hashedPassword, bcrypteErr := bcrypt.GenerateFromPassword([]byte("123"), 4)
 	if bcrypteErr != nil {
 		log.Println(bcrypteErr)
@@ -75,7 +75,7 @@ func TestGetBalance(t *testing.T) {
 			},
 		},
 	}
-	Routes := *Routes(database, secretKey)
+	Routes := *Routes(database, secretKey, "10h")
 	ts := httptest.NewServer(&Routes)
 	defer ts.Close()
 
@@ -107,7 +107,7 @@ func TestWithdraws(t *testing.T) {
 	var secretKey = []byte("G0pher")
 
 	userID := uuid.New()
-	cookie, cookieExpires := GenerateCookie(userID, secretKey)
+	cookie, cookieExpires := GenerateCookie(userID, secretKey, "10h")
 	hashedPassword, bcrypteErr := bcrypt.GenerateFromPassword([]byte("123"), 4)
 	if bcrypteErr != nil {
 		log.Println(bcrypteErr)
@@ -207,7 +207,7 @@ func TestWithdraws(t *testing.T) {
 			},
 		},
 	}
-	Routes := *Routes(database, secretKey)
+	Routes := *Routes(database, secretKey, "10h")
 	ts := httptest.NewServer(&Routes)
 	defer ts.Close()
 

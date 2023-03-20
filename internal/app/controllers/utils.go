@@ -53,9 +53,10 @@ func readBodyBytes(r *http.Request) (io.ReadCloser, error) {
 	}
 }
 
-func GenerateCookie(userID uuid.UUID, secretKey []byte) (http.Cookie, time.Time) {
+func GenerateCookie(userID uuid.UUID, secretKey []byte, tokenLifeTime string) (http.Cookie, time.Time) {
 	session := security.Encrypt(userID, secretKey)
-	expiration := time.Now().Add(365 * 24 * time.Hour)
+	tokenLife, _ := time.ParseDuration(tokenLifeTime)
+	expiration := time.Now().Add(tokenLife)
 	cookie := http.Cookie{Name: "session", Value: session, Expires: expiration, Path: "/"}
 	return cookie, expiration
 }

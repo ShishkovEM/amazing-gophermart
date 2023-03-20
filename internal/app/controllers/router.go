@@ -10,7 +10,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func Routes(storage *storage.Storage, secretKey []byte) *chi.Mux {
+func Routes(storage *storage.Storage, secretKey []byte, cookieLifetime string) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
@@ -20,7 +20,7 @@ func Routes(storage *storage.Storage, secretKey []byte) *chi.Mux {
 	r.Use(middleware.AllowContentType("application/json", "text/plain", "application/x-gzip"))
 	r.Use(middleware.Compress(5, gzipContentTypes))
 	r.Mount("/debug", middleware.Profiler())
-	r.Post("/api/user/register", UserRegistration(storage, secretKey))
+	r.Post("/api/user/register", UserRegistration(storage, secretKey, cookieLifetime))
 	r.Post("/api/user/login", UserAuthentication(storage))
 	r.Post("/api/user/orders", PostOrder(storage, secretKey))
 	r.Get("/api/user/orders", GetOrders(storage, secretKey))
