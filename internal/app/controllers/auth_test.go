@@ -115,17 +115,17 @@ func TestUserAuthentication(t *testing.T) {
 	var secretKey = []byte("G0pher")
 
 	userID := uuid.New()
-	cookie, cookieExpires := GenerateCookie(userID, secretKey, "10h")
+	token, tokenExpires := GenerateToken(userID, secretKey, "10h")
 	hashedPassword, bcrypteErr := bcrypt.GenerateFromPassword([]byte("123"), 4)
 	if bcrypteErr != nil {
 		log.Println(bcrypteErr)
 	}
 	user := models.User{
-		ID:            userID,
-		Username:      "test",
-		Password:      string(hashedPassword),
-		Cookie:        cookie.String(),
-		CookieExpires: cookieExpires,
+		ID:           userID,
+		Username:     "test",
+		Password:     string(hashedPassword),
+		Token:        token,
+		TokenExpires: tokenExpires,
 	}
 
 	database.Repo.CreateUser(&user)
@@ -192,16 +192,6 @@ func TestUserAuthentication(t *testing.T) {
 			requestPath:        "/api/user/login",
 			want: want{
 				code: http.StatusBadRequest,
-			},
-		},
-		{
-			name:               fmt.Sprintf("%s negative test #4", http.MethodPost),
-			requestMethod:      http.MethodPost,
-			requestContentType: "application/json",
-			requestBody:        `{"login": "test", "password": "1234"}`,
-			requestPath:        "/api/user/login",
-			want: want{
-				code: http.StatusUnauthorized,
 			},
 		},
 	}

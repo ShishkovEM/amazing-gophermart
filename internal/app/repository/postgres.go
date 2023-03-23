@@ -87,7 +87,7 @@ func (pdb *PostgresDB) Ping() bool {
 
 func (pdb *PostgresDB) CreateUser(user *models.User) error {
 
-	_, err := pdb.pool.Exec(context.Background(), "INSERT INTO users (id, username, pass, cookie, cookie_expires) VALUES ($1, $2, $3, $4, $5) on conflict (username) do nothing", user.ID, user.Username, user.Password, user.Cookie, user.CookieExpires)
+	_, err := pdb.pool.Exec(context.Background(), "INSERT INTO users (id, username, pass, token, token_expires) VALUES ($1, $2, $3, $4, $5) on conflict (username) do nothing", user.ID, user.Username, user.Password, user.Token, user.TokenExpires)
 
 	if err != nil && strings.Contains(err.Error(), pgerrcode.UniqueViolation) {
 		return exceptions.ErrDuplicatePK
@@ -98,7 +98,7 @@ func (pdb *PostgresDB) CreateUser(user *models.User) error {
 
 func (pdb *PostgresDB) ReadUser(username string) (*models.User, error) {
 	var user models.User
-	err := pdb.pool.QueryRow(context.Background(), "SELECT id, username, pass, cookie, cookie_expires FROM users WHERE username=$1", username).Scan(&user.ID, &user.Username, &user.Password, &user.Cookie, &user.CookieExpires)
+	err := pdb.pool.QueryRow(context.Background(), "SELECT id, username, pass, token, token_expires FROM users WHERE username=$1", username).Scan(&user.ID, &user.Username, &user.Password, &user.Token, &user.TokenExpires)
 	if err != nil {
 		log.Println(err)
 		return &models.User{}, err

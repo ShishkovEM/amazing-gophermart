@@ -53,12 +53,11 @@ func readBodyBytes(r *http.Request) (io.ReadCloser, error) {
 	}
 }
 
-func GenerateCookie(userID uuid.UUID, secretKey []byte, tokenLifeTime string) (http.Cookie, time.Time) {
-	session := security.Encrypt(userID, secretKey)
+func GenerateToken(userID uuid.UUID, secretKey []byte, tokenLifeTime string) (string, time.Time) {
+	token := security.Encrypt(userID, secretKey)
 	tokenLife, _ := time.ParseDuration(tokenLifeTime)
 	expiration := time.Now().Add(tokenLife)
-	cookie := http.Cookie{Name: "session", Value: session, Expires: expiration, Path: "/"}
-	return cookie, expiration
+	return token, expiration
 }
 
 func GetToken(r *http.Request, secretKey []byte) (uuid.UUID, error) {
@@ -78,16 +77,16 @@ func GetToken(r *http.Request, secretKey []byte) (uuid.UUID, error) {
 	return userID, nil
 }
 
-func ParseCookie(cookieStr string) (string, error) {
-	cookieInfo := strings.Split(cookieStr, "; ")
-	for _, pairs := range cookieInfo {
-		elements := strings.Split(pairs, "=")
-		if elements[0] == "session" {
-			return elements[1], nil
-		}
-	}
-	return "", exceptions.ErrNoCookie
-}
+//func ParseCookie(cookieStr string) (string, error) {
+//	cookieInfo := strings.Split(cookieStr, "; ")
+//	for _, pairs := range cookieInfo {
+//		elements := strings.Split(pairs, "=")
+//		if elements[0] == "session" {
+//			return elements[1], nil
+//		}
+//	}
+//	return "", exceptions.ErrNoCookie
+//}
 
 func valid(number int) bool {
 	return (number%10+checksum(number/10))%10 == 0
