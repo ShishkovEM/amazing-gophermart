@@ -181,7 +181,7 @@ func (pdb *PostgresDB) CreateWithdrawal(withdraw *models.Withdraw) error {
 
 func (pdb *PostgresDB) ReadAllWithdrawals(userID uuid.UUID) ([]*models.WithdrawDB, error) {
 	var withdrawals []*models.WithdrawDB
-	rows, err := pdb.pool.Query(context.Background(), "SELECT operation_num, withdrawal, withdrawn_at FROM operations WHERE user_id=$1 ORDER BY withdrawn_at", userID)
+	rows, err := pdb.pool.Query(context.Background(), "SELECT operation_num, withdrawal, withdrawn_at FROM operations WHERE (user_id=$1 AND withdrawn_at IS NOT NULL) ORDER BY withdrawn_at", userID)
 	if err != nil {
 		log.Println(err)
 		return withdrawals, err
