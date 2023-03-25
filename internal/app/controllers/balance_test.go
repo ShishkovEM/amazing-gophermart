@@ -21,17 +21,17 @@ func TestGetBalance(t *testing.T) {
 	var secretKey = []byte("G0pher")
 
 	userID := uuid.New()
-	cookie, cookieExpires := GenerateCookie(userID, secretKey, "10h")
+	token, tokenExpires := GenerateToken(userID, secretKey, "10h")
 	hashedPassword, bcrypteErr := bcrypt.GenerateFromPassword([]byte("123"), 4)
 	if bcrypteErr != nil {
 		log.Println(bcrypteErr)
 	}
 	user := models.User{
-		ID:            userID,
-		Username:      "test",
-		Password:      string(hashedPassword),
-		Cookie:        cookie.String(),
-		CookieExpires: cookieExpires,
+		ID:           userID,
+		Username:     "test",
+		Password:     string(hashedPassword),
+		Token:        token,
+		TokenExpires: tokenExpires,
 	}
 
 	newUserErr := database.Repo.CreateUser(&user)
@@ -107,19 +107,19 @@ func TestWithdraws(t *testing.T) {
 	var secretKey = []byte("G0pher")
 
 	userID := uuid.New()
-	cookie, cookieExpires := GenerateCookie(userID, secretKey, "10h")
+	token, tokenExpires := GenerateToken(userID, secretKey, "10h")
 	hashedPassword, bcrypteErr := bcrypt.GenerateFromPassword([]byte("123"), 4)
 	if bcrypteErr != nil {
 		log.Println(bcrypteErr)
 	}
 	user := models.User{
-		ID:            userID,
-		Username:      "test",
-		Password:      string(hashedPassword),
-		Cookie:        cookie.String(),
-		CookieExpires: cookieExpires,
+		ID:           userID,
+		Username:     "test",
+		Password:     string(hashedPassword),
+		Token:        token,
+		TokenExpires: tokenExpires,
 	}
-	userToken := fmt.Sprintf("Bearer %s", cookie.Value)
+	userToken := fmt.Sprintf("Bearer %s", token)
 
 	newUserErr := database.Repo.CreateUser(&user)
 	if newUserErr != nil {
@@ -148,7 +148,6 @@ func TestWithdraws(t *testing.T) {
 		requestContentType     string
 		requestAcceptEncoding  string
 		requestContentEncoding string
-		requestCookie          string
 		requestToken           string
 		want                   want
 	}{
@@ -156,7 +155,6 @@ func TestWithdraws(t *testing.T) {
 			name:          fmt.Sprintf("%s no content #1", http.MethodGet),
 			requestMethod: http.MethodGet,
 			requestPath:   "/api/user/withdrawals",
-			requestCookie: cookie.String(),
 			requestToken:  userToken,
 			want: want{
 				code: http.StatusNoContent,
@@ -177,7 +175,6 @@ func TestWithdraws(t *testing.T) {
 			requestContentType: "text/plain",
 			requestBody:        "12345678903", // новый номер заказа принят в обработку
 			requestPath:        "/api/user/orders",
-			requestCookie:      cookie.String(),
 			requestToken:       userToken,
 			want: want{
 				code: http.StatusAccepted,
@@ -200,7 +197,6 @@ func TestWithdraws(t *testing.T) {
 			requestPath:        "/api/user/balance/withdraw",
 			requestContentType: "application/json",
 			requestBody:        `{"order": "123", "sum": 500}`,
-			requestCookie:      cookie.String(),
 			requestToken:       userToken,
 			want: want{
 				code: http.StatusUnprocessableEntity,
@@ -217,7 +213,6 @@ func TestWithdraws(t *testing.T) {
 			reqURL := tt.requestPath + tt.request
 			request := httptest.NewRequest(tt.requestMethod, reqURL, bytes.NewBuffer(reqBody))
 			request.Header.Set("Content-Type", tt.requestContentType)
-			request.Header.Set("Cookie", tt.requestCookie)
 			if len(tt.requestToken) > 0 {
 				request.Header.Set("Authorization", tt.requestToken)
 			}

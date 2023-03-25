@@ -21,19 +21,19 @@ func TestPostOrder(t *testing.T) {
 	var secretKey = []byte("G0pher")
 
 	userID := uuid.New()
-	cookie, cookieExpires := GenerateCookie(userID, secretKey, "10h")
+	token, tokenExpires := GenerateToken(userID, secretKey, "10h")
 	hashedPassword, bcrypteErr := bcrypt.GenerateFromPassword([]byte("123"), 4)
 	if bcrypteErr != nil {
 		log.Println(bcrypteErr)
 	}
 	user := models.User{
-		ID:            userID,
-		Username:      "test",
-		Password:      string(hashedPassword),
-		Cookie:        cookie.String(),
-		CookieExpires: cookieExpires,
+		ID:           userID,
+		Username:     "test",
+		Password:     string(hashedPassword),
+		Token:        token,
+		TokenExpires: tokenExpires,
 	}
-	userToken := fmt.Sprintf("Bearer %s", cookie.Value)
+	userToken := fmt.Sprintf("Bearer %s", token)
 
 	newUserErr := database.Repo.CreateUser(&user)
 	if newUserErr != nil {
@@ -41,17 +41,17 @@ func TestPostOrder(t *testing.T) {
 	}
 
 	subUserID := uuid.New()
-	subCookie, subCookieExpires := GenerateCookie(subUserID, secretKey, "10h")
+	subToken, subTokenExpires := GenerateToken(subUserID, secretKey, "10h")
 	subHashedPassword, subBcrypteErr := bcrypt.GenerateFromPassword([]byte("123"), 4)
 	if subBcrypteErr != nil {
 		log.Println(subBcrypteErr)
 	}
 	subUser := models.User{
-		ID:            subUserID,
-		Username:      "test2",
-		Password:      string(subHashedPassword),
-		Cookie:        subCookie.String(),
-		CookieExpires: subCookieExpires,
+		ID:           subUserID,
+		Username:     "test2",
+		Password:     string(subHashedPassword),
+		Token:        subToken,
+		TokenExpires: subTokenExpires,
 	}
 
 	database.Repo.CreateUser(&subUser)
@@ -78,7 +78,6 @@ func TestPostOrder(t *testing.T) {
 		requestContentType     string
 		requestAcceptEncoding  string
 		requestContentEncoding string
-		requestCookie          string
 		requestToken           string
 		want                   want
 	}{
@@ -88,7 +87,6 @@ func TestPostOrder(t *testing.T) {
 			requestContentType: "text/plain",
 			requestBody:        "12345-678903", // неверный формат номера заказа
 			requestPath:        "/api/user/orders",
-			requestCookie:      cookie.String(),
 			requestToken:       userToken,
 			want: want{
 				code: http.StatusUnprocessableEntity,
@@ -100,7 +98,6 @@ func TestPostOrder(t *testing.T) {
 			requestContentType: "application/json", // неверный Content-Type неверный формат запроса
 			requestBody:        "12345-678903",
 			requestPath:        "/api/user/orders",
-			requestCookie:      cookie.String(),
 			requestToken:       userToken,
 			want: want{
 				code: http.StatusBadRequest,
@@ -112,7 +109,6 @@ func TestPostOrder(t *testing.T) {
 			requestContentType: "text/plain",
 			requestBody:        "1234567890", // не проходит проверку по Луну
 			requestPath:        "/api/user/orders",
-			requestCookie:      cookie.String(),
 			requestToken:       userToken,
 			want: want{
 				code: http.StatusUnprocessableEntity,
@@ -124,7 +120,6 @@ func TestPostOrder(t *testing.T) {
 			requestContentType: "text/plain",
 			requestBody:        "1234567890", // без cookie
 			requestPath:        "/api/user/orders",
-			requestCookie:      "",
 			want: want{
 				code: http.StatusUnauthorized,
 			},
@@ -140,7 +135,6 @@ func TestPostOrder(t *testing.T) {
 			reqURL := tt.requestPath + tt.request
 			request := httptest.NewRequest(tt.requestMethod, reqURL, bytes.NewBuffer(reqBody))
 			request.Header.Set("Content-Type", tt.requestContentType)
-			request.Header.Set("Cookie", tt.requestCookie)
 			if len(tt.requestToken) > 0 {
 				request.Header.Set("Authorization", tt.requestToken)
 			}
@@ -162,38 +156,38 @@ func TestGetOrders(t *testing.T) {
 	var secretKey = []byte("G0pher")
 
 	userID := uuid.New()
-	cookie, cookieExpires := GenerateCookie(userID, secretKey, "10h")
+	token, tokenExpires := GenerateToken(userID, secretKey, "10h")
 	hashedPassword, bcrypteErr := bcrypt.GenerateFromPassword([]byte("123"), 4)
 	if bcrypteErr != nil {
 		log.Println(bcrypteErr)
 	}
 	user := models.User{
-		ID:            userID,
-		Username:      "test",
-		Password:      string(hashedPassword),
-		Cookie:        cookie.String(),
-		CookieExpires: cookieExpires,
+		ID:           userID,
+		Username:     "test",
+		Password:     string(hashedPassword),
+		Token:        token,
+		TokenExpires: tokenExpires,
 	}
-	userToken := fmt.Sprintf("Bearer %s", cookie.Value)
+	userToken := fmt.Sprintf("Bearer %s", token)
 	newUserErr := database.Repo.CreateUser(&user)
 	if newUserErr != nil {
 		log.Println("New User Error", newUserErr)
 	}
 
 	subUserID := uuid.New()
-	subCookie, subCookieExpires := GenerateCookie(subUserID, secretKey, "10h")
+	subToken, subTokenExpires := GenerateToken(subUserID, secretKey, "10h")
 	subHashedPassword, subBcrypteErr := bcrypt.GenerateFromPassword([]byte("123"), 4)
 	if subBcrypteErr != nil {
 		log.Println(subBcrypteErr)
 	}
 	subUser := models.User{
-		ID:            subUserID,
-		Username:      "test2",
-		Password:      string(subHashedPassword),
-		Cookie:        subCookie.String(),
-		CookieExpires: subCookieExpires,
+		ID:           subUserID,
+		Username:     "test2",
+		Password:     string(subHashedPassword),
+		Token:        subToken,
+		TokenExpires: subTokenExpires,
 	}
-	subUserToken := fmt.Sprintf("Bearer %s", subCookie.Value)
+	subUserToken := fmt.Sprintf("Bearer %s", subToken)
 	database.Repo.CreateUser(&subUser)
 
 	if dbErr != nil {
@@ -218,7 +212,6 @@ func TestGetOrders(t *testing.T) {
 		requestContentType     string
 		requestAcceptEncoding  string
 		requestContentEncoding string
-		requestCookie          string
 		requestToken           string
 		want                   want
 	}{
@@ -228,7 +221,6 @@ func TestGetOrders(t *testing.T) {
 			requestContentType: "text/plain",
 			requestBody:        "1230", // новый номер заказа принят в обработку
 			requestPath:        "/api/user/orders",
-			requestCookie:      cookie.String(),
 			requestToken:       userToken,
 			want: want{
 				code: http.StatusAccepted,
@@ -238,7 +230,6 @@ func TestGetOrders(t *testing.T) {
 			name:          fmt.Sprintf("%s positive #1", http.MethodGet),
 			requestMethod: http.MethodGet,
 			requestPath:   "/api/user/orders", // нет заказов в базе
-			requestCookie: subCookie.String(),
 			requestToken:  subUserToken,
 			want: want{
 				code: http.StatusNoContent,
@@ -263,7 +254,6 @@ func TestGetOrders(t *testing.T) {
 			reqURL := tt.requestPath + tt.request
 			request := httptest.NewRequest(tt.requestMethod, reqURL, bytes.NewBuffer(reqBody))
 			request.Header.Set("Content-Type", tt.requestContentType)
-			request.Header.Set("Cookie", tt.requestCookie)
 			if len(tt.requestToken) > 0 {
 				request.Header.Set("Authorization", tt.requestToken)
 			}

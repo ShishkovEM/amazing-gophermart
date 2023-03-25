@@ -2,8 +2,8 @@ CREATE TABLE IF NOT EXISTS users (
     id UUID,
     username VARCHAR(255),
     pass VARCHAR(255),
-    cookie TEXT,
-    cookie_expires TIMESTAMP,
+    token TEXT,
+    token_expires TIMESTAMP,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
     CONSTRAINT users_pkey PRIMARY KEY (id),
     CONSTRAINT username_unique UNIQUE (username)

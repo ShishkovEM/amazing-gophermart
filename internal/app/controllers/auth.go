@@ -50,13 +50,13 @@ func UserRegistration(storage *storage.Storage, secretKey []byte, tokenLifetime 
 		}
 
 		userID := uuid.New()
-		userCookie, userCookieExp := GenerateCookie(userID, secretKey, tokenLifetime)
+		userToken, userTokenExp := GenerateToken(userID, secretKey, tokenLifetime)
 		hashedPassword, bcrypteErr := bcrypt.GenerateFromPassword([]byte(user.Password), 4)
 		if bcrypteErr != nil {
 			log.Println(bcrypteErr)
 		}
 
-		user.ID, user.Password, user.Cookie, user.CookieExpires = userID, string(hashedPassword), userCookie.String(), userCookieExp
+		user.ID, user.Password, user.Token, user.TokenExpires = userID, string(hashedPassword), userToken, userTokenExp
 
 		newUserErr := storage.Repo.CreateUser(&user)
 		if newUserErr != nil {
@@ -69,10 +69,10 @@ func UserRegistration(storage *storage.Storage, secretKey []byte, tokenLifetime 
 		}
 
 		generatedAt := time.Now().Format(timeLayout)
-		expiresAt := userCookie.Expires.Format(timeLayout)
+		expiresAt := userTokenExp.Format(timeLayout)
 		tokenDetails := models.Token{
 			TokenType:   "Bearer",
-			AuthToken:   userCookie.Value,
+			AuthToken:   userToken,
 			GeneratedAt: generatedAt,
 			ExpiresAt:   expiresAt,
 		}
@@ -130,21 +130,21 @@ func UserAuthentication(storage *storage.Storage) http.HandlerFunc {
 			return
 		}
 
-		if userDB.CookieExpires.Before(time.Now()) {
-			log.Println("cookie expired")
+		if userDB.TokenExpires.Before(time.Now()) {
+			log.Println("token expired")
 		}
 
-		// Авторизация по токену
+		//// Авторизация по токену
 		generatedAt := time.Now().Format(timeLayout)
-		expiresAt := userDB.CookieExpires.Format(timeLayout)
-		cookieSession, cookieSessionErr := ParseCookie(userDB.Cookie)
-		if cookieSessionErr != nil {
-			log.Println(cookieSessionErr)
-		}
+		expiresAt := userDB.TokenExpires.Format(timeLayout)
+		//cookieSession, cookieSessionErr := ParseCookie(userDB.Token)
+		//if cookieSessionErr != nil {
+		//	log.Println(cookieSessionErr)
+		//}
 
 		tokenDetails := models.Token{
 			TokenType:   "Bearer",
-			AuthToken:   cookieSession,
+			AuthToken:   userDB.Token,
 			GeneratedAt: generatedAt,
 			ExpiresAt:   expiresAt,
 		}
