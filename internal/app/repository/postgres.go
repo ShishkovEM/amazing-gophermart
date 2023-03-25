@@ -170,7 +170,7 @@ func (pdb *PostgresDB) ReadBalance(userID uuid.UUID) (*models.Balance, error) {
 }
 
 func (pdb *PostgresDB) CreateWithdrawal(withdraw *models.Withdraw) error {
-	_, err := pdb.pool.Exec(context.Background(), "INSERT INTO orders (user_id, order_num, withdrawal, withdrawn_at) VALUES ($1, $2, $3, now())", withdraw.UserID, withdraw.OrderNum, withdraw.Withdraw)
+	_, err := pdb.pool.Exec(context.Background(), "UPDATE orders SET withdrawal=$3, withdrawn_at=now() WHERE (user_id=$1 AND order_num=$2)", withdraw.UserID, withdraw.OrderNum, withdraw.Withdraw)
 
 	if err != nil && strings.Contains(err.Error(), pgerrcode.UniqueViolation) {
 		return exceptions.ErrDuplicatePK

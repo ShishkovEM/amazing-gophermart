@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS orders (
     withdrawal FLOAT4,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
     withdrawn_at TIMESTAMP WITH TIME ZONE,
+    CONSTRAINT orders_pkey PRIMARY KEY (order_num),
     CONSTRAINT orders_users_fkey FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL
 );
 
