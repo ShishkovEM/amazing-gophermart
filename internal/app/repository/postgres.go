@@ -108,7 +108,7 @@ func (pdb *PostgresDB) ReadUser(username string) (*models.User, error) {
 
 func (pdb *PostgresDB) CheckOrder(orderNum string) (*models.Order, error) {
 	var order models.Order
-	err := pdb.pool.QueryRow(context.Background(), "SELECT user_id, operation_num FROM operations WHERE operation_num=$1", orderNum).Scan(&order.UserID, &order.OrderNum)
+	err := pdb.pool.QueryRow(context.Background(), "SELECT user_id, order_num FROM operations WHERE order_num=$1", orderNum).Scan(&order.UserID, &order.OrderNum)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -123,7 +123,7 @@ func (pdb *PostgresDB) CheckOrder(orderNum string) (*models.Order, error) {
 
 func (pdb *PostgresDB) CreateOrder(order *models.Order) error {
 	order.Status = "NEW"
-	_, err := pdb.pool.Exec(context.Background(), "INSERT INTO operations (user_id, operation_num, status) VALUES ($1, $2, $3) ON CONFLICT (operation_num) DO NOTHING", order.UserID, order.OrderNum, order.Status)
+	_, err := pdb.pool.Exec(context.Background(), "INSERT INTO operations (user_id, order_num, status) VALUES ($1, $2, $3) ON CONFLICT (order_num) DO NOTHING", order.UserID, order.OrderNum, order.Status)
 
 	if err != nil && strings.Contains(err.Error(), pgerrcode.UniqueViolation) {
 		return exceptions.ErrDuplicatePK
@@ -134,7 +134,7 @@ func (pdb *PostgresDB) CreateOrder(order *models.Order) error {
 
 func (pdb *PostgresDB) ReadOrders(userID uuid.UUID) ([]*models.OrderDB, error) {
 	orders := make([]*models.OrderDB, 0)
-	rows, err := pdb.pool.Query(context.Background(), "SELECT operation_num, accrual, status, created_at FROM operations where user_id=$1 order by created_at;", userID)
+	rows, err := pdb.pool.Query(context.Background(), "SELECT order_num, accrual, status, created_at FROM operations where user_id=$1 order by created_at;", userID)
 	if err != nil {
 		log.Println(err)
 		return orders, err
@@ -181,7 +181,7 @@ func (pdb *PostgresDB) CreateWithdrawal(withdraw *models.Withdraw) error {
 
 func (pdb *PostgresDB) ReadAllWithdrawals(userID uuid.UUID) ([]*models.WithdrawDB, error) {
 	var withdrawals []*models.WithdrawDB
-	rows, err := pdb.pool.Query(context.Background(), "SELECT operation_num, withdrawal, withdrawn_at FROM operations WHERE (user_id=$1 AND withdrawn_at IS NOT NULL) ORDER BY withdrawn_at", userID)
+	rows, err := pdb.pool.Query(context.Background(), "SELECT order_num, withdrawal, withdrawn_at FROM operations WHERE (user_id=$1 AND withdrawn_at IS NOT NULL) ORDER BY withdrawn_at", userID)
 	if err != nil {
 		log.Println(err)
 		return withdrawals, err
@@ -208,7 +208,7 @@ func (pdb *PostgresDB) ReadAllWithdrawals(userID uuid.UUID) ([]*models.WithdrawD
 func (pdb *PostgresDB) ReadOrdersForProcessing() ([]string, error) {
 	var orders []string
 
-	rows, err := pdb.pool.Query(context.Background(), "SELECT operation_num FROM operations WHERE status IN ('NEW','PROCESSING') ORDER BY created_at")
+	rows, err := pdb.pool.Query(context.Background(), "SELECT order_num FROM operations WHERE status IN ('NEW','PROCESSING') ORDER BY created_at")
 	if err != nil {
 		log.Println(err)
 		return orders, err
@@ -236,9 +236,9 @@ func (pdb *PostgresDB) UpdateOrder(order models.ProcessingOrder) {
 	var query string
 
 	if order.Accrual != nil {
-		query = fmt.Sprintf("UPDATE operations SET status = '%s', accrual = '%f' WHERE operation_num = '%s';", order.Status, order.Accrual.(float64), order.OrderNum)
+		query = fmt.Sprintf("UPDATE operations SET status = '%s', accrual = '%f' WHERE order_num = '%s';", order.Status, order.Accrual.(float64), order.OrderNum)
 	} else {
-		query = fmt.Sprintf("UPDATE operations SET status = '%s' WHERE operation_num = '%s';", order.Status, order.OrderNum)
+		query = fmt.Sprintf("UPDATE operations SET status = '%s' WHERE order_num = '%s';", order.Status, order.OrderNum)
 	}
 
 	res, err := pdb.pool.Exec(context.Background(), query)
