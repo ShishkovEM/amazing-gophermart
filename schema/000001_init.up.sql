@@ -9,19 +9,28 @@ CREATE TABLE IF NOT EXISTS users (
     CONSTRAINT username_unique UNIQUE (username)
 );
 
-CREATE TABLE IF NOT EXISTS operations (
+CREATE TABLE IF NOT EXISTS orders (
     user_id UUID,
-    operation_num VARCHAR(255),
+    order_num VARCHAR(255),
     accrual FLOAT4,
     status VARCHAR(255),
-    withdrawal FLOAT4,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-    withdrawn_at TIMESTAMP WITH TIME ZONE,
-    CONSTRAINT operations_pkey PRIMARY KEY (operation_num),
-    CONSTRAINT operation_users_fkey FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL
+    CONSTRAINT orders_pkey PRIMARY KEY (order_num),
+    CONSTRAINT orders_users_fkey FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL
 );
 
-DELETE FROM operations WHERE user_id IN (SELECT user_id FROM users WHERE username LIKE 'test%');
+CREATE TABLE IF NOT EXISTS withdrawals (
+    user_id UUID,
+    order_num VARCHAR(255),
+    withdraw FLOAT4,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    CONSTRAINT withdrawals_pkey PRIMARY KEY (order_num),
+    CONSTRAINT withdrawals_users_fkey FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL
+);
+
+DELETE FROM withdrawals WHERE user_id IN (SELECT user_id FROM users WHERE username LIKE 'test%');
+
+DELETE FROM orders WHERE user_id IN (SELECT user_id FROM users WHERE username LIKE 'test%');
 
 DELETE FROM users WHERE username LIKE 'test%';
 
@@ -32,16 +41,16 @@ OR REPLACE VIEW balance AS (
       user_id,
       SUM(accrual) total
     FROM
-      operations
+      orders
     GROUP BY
       user_id
   ),
   withdraw AS (
     SELECT
       user_id,
-      SUM(withdrawal) withdraw
+      SUM(withdraw) withdraw
     FROM
-      operations
+      withdrawals
     GROUP BY
       user_id
   )
