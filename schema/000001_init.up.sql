@@ -14,12 +14,21 @@ CREATE TABLE IF NOT EXISTS orders (
     order_num VARCHAR(255),
     accrual FLOAT4,
     status VARCHAR(255),
-    withdrawal FLOAT4,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-    withdrawn_at TIMESTAMP WITH TIME ZONE,
     CONSTRAINT orders_pkey PRIMARY KEY (order_num),
     CONSTRAINT orders_users_fkey FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL
 );
+
+CREATE TABLE IF NOT EXISTS withdrawals (
+    user_id UUID,
+    order_num VARCHAR(255),
+    withdraw FLOAT4,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    CONSTRAINT withdrawals_pkey PRIMARY KEY (order_num),
+    CONSTRAINT withdrawals_users_fkey FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL
+);
+
+DELETE FROM withdrawals WHERE user_id IN (SELECT user_id FROM users WHERE username LIKE 'test%');
 
 DELETE FROM orders WHERE user_id IN (SELECT user_id FROM users WHERE username LIKE 'test%');
 
@@ -30,7 +39,7 @@ OR REPLACE VIEW balance AS (
   WITH total AS (
     SELECT
       user_id,
-      SUM(CASE WHEN withdrawn_at IS NULL THEN accrual ELSE 0 END) total
+      SUM(accrual) total
     FROM
       orders
     GROUP BY
@@ -39,9 +48,9 @@ OR REPLACE VIEW balance AS (
   withdraw AS (
     SELECT
       user_id,
-      SUM(CASE WHEN withdrawn_at IS NOT NULL THEN withdrawal ELSE 0 END) withdraw
+      SUM(withdraw) withdraw
     FROM
-      orders
+      withdrawals
     GROUP BY
       user_id
   )
