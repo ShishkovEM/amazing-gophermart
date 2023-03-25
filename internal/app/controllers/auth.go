@@ -137,6 +137,10 @@ func UserAuthentication(storage *storage.Storage) http.HandlerFunc {
 		//// Авторизация по токену
 		generatedAt := time.Now().Format(timeLayout)
 		expiresAt := userDB.TokenExpires.Format(timeLayout)
+		//cookieSession, cookieSessionErr := ParseCookie(userDB.Token)
+		//if cookieSessionErr != nil {
+		//	log.Println(cookieSessionErr)
+		//}
 
 		tokenDetails := models.Token{
 			TokenType:   "Bearer",
