@@ -33,8 +33,6 @@ OR REPLACE VIEW balance AS (
       SUM(accrual) total
     FROM
       operations
-    WHERE
-      withdrawn_at IS NULL
     GROUP BY
       user_id
   ),
@@ -44,8 +42,6 @@ OR REPLACE VIEW balance AS (
       SUM(withdrawal) withdraw
     FROM
       operations
-    WHERE
-      withdrawn_at IS NOT NULL
     GROUP BY
       user_id
   )
