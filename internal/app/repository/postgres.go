@@ -123,7 +123,7 @@ func (pdb *PostgresDB) CheckOrder(orderNum string) (*models.Order, error) {
 
 func (pdb *PostgresDB) CreateOrder(order *models.Order) error {
 	order.Status = "NEW"
-	_, err := pdb.pool.Exec(context.Background(), "INSERT INTO orders (user_id, order_num, status) VALUES ($1, $2, $3) ON CONFLICT (order_num) DO NOTHING", order.UserID, order.OrderNum, order.Status)
+	_, err := pdb.pool.Exec(context.Background(), "INSERT INTO orders (user_id, order_num, status, created_at) VALUES ($1, $2, $3, now()) ON CONFLICT (order_num) DO NOTHING", order.UserID, order.OrderNum, order.Status)
 
 	if err != nil && strings.Contains(err.Error(), pgerrcode.UniqueViolation) {
 		return exceptions.ErrDuplicatePK
@@ -134,7 +134,7 @@ func (pdb *PostgresDB) CreateOrder(order *models.Order) error {
 
 func (pdb *PostgresDB) ReadOrders(userID uuid.UUID) ([]*models.OrderDB, error) {
 	orders := make([]*models.OrderDB, 0)
-	rows, err := pdb.pool.Query(context.Background(), "SELECT order_num, accrual, status, created_at FROM orders where user_id=$1 order by created_at;", userID)
+	rows, err := pdb.pool.Query(context.Background(), "SELECT order_num, accrual, status, created_at FROM orders WHERE (user_id=$1 AND created_at IS NOT NULL) ORDER BY created_at;", userID)
 	if err != nil {
 		log.Println(err)
 		return orders, err
@@ -170,7 +170,7 @@ func (pdb *PostgresDB) ReadBalance(userID uuid.UUID) (*models.Balance, error) {
 }
 
 func (pdb *PostgresDB) CreateWithdrawal(withdraw *models.Withdraw) error {
-	_, err := pdb.pool.Exec(context.Background(), "INSERT INTO withdrawals (user_id, order_num, withdraw) VALUES ($1, $2, $3) ON CONFLICT (order_num) DO NOTHING", withdraw.UserID, withdraw.OrderNum, withdraw.Withdraw)
+	_, err := pdb.pool.Exec(context.Background(), "INSERT INTO orders (user_id, order_num, withdrawal, withdrawn_at) VALUES ($1, $2, $3, now()) ON CONFLICT (order_num) DO NOTHING", withdraw.UserID, withdraw.OrderNum, withdraw.Withdraw)
 
 	if err != nil && strings.Contains(err.Error(), pgerrcode.UniqueViolation) {
 		return exceptions.ErrDuplicatePK
@@ -181,7 +181,7 @@ func (pdb *PostgresDB) CreateWithdrawal(withdraw *models.Withdraw) error {
 
 func (pdb *PostgresDB) ReadAllWithdrawals(userID uuid.UUID) ([]*models.WithdrawDB, error) {
 	var withdrawals []*models.WithdrawDB
-	rows, err := pdb.pool.Query(context.Background(), "SELECT order_num, withdraw, created_at FROM withdrawals WHERE user_id=$1 ORDER BY created_at", userID)
+	rows, err := pdb.pool.Query(context.Background(), "SELECT order_num, withdrawal, withdrawn_at FROM orders WHERE (user_id=$1 AND withdrawn_at IS NOT NULL) ORDER BY withdrawn_at", userID)
 	if err != nil {
 		log.Println(err)
 		return withdrawals, err
@@ -208,7 +208,7 @@ func (pdb *PostgresDB) ReadAllWithdrawals(userID uuid.UUID) ([]*models.WithdrawD
 func (pdb *PostgresDB) ReadOrdersForProcessing() ([]string, error) {
 	var orders []string
 
-	rows, err := pdb.pool.Query(context.Background(), "SELECT order_num FROM orders WHERE status IN ('NEW','PROCESSING') ORDER BY created_at")
+	rows, err := pdb.pool.Query(context.Background(), "SELECT order_num FROM orders WHERE (status IN ('NEW','PROCESSING') AND created_at IS NOT NULL) ORDER BY created_at")
 	if err != nil {
 		log.Println(err)
 		return orders, err
