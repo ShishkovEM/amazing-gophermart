@@ -3,12 +3,12 @@ package controllers
 import (
 	"bytes"
 	"fmt"
-	"github.com/ShishkovEM/amazing-gophermart/internal/app/handlers"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/ShishkovEM/amazing-gophermart/internal/app/handlers"
 	"github.com/ShishkovEM/amazing-gophermart/internal/app/models"
 	"github.com/ShishkovEM/amazing-gophermart/internal/app/storage"
 
