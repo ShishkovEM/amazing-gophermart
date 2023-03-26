@@ -88,7 +88,7 @@ func GetToken(r *http.Request, secretKey []byte) (uuid.UUID, error) {
 //	return "", exceptions.ErrNoCookie
 //}
 
-func valid(number int) bool {
+func Valid(number int) bool {
 	return (number%10+checksum(number/10))%10 == 0
 }
 

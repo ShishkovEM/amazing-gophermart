@@ -1,9 +1,9 @@
-package handlers
+package controllers
 
 import (
 	"bytes"
 	"fmt"
-	"github.com/ShishkovEM/amazing-gophermart/internal/app/controllers"
+	"github.com/ShishkovEM/amazing-gophermart/internal/app/handlers"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -22,7 +22,7 @@ func TestPostOrder(t *testing.T) {
 	var secretKey = []byte("G0pher")
 
 	userID := uuid.New()
-	token, tokenExpires := GenerateToken(userID, secretKey, "10h")
+	token, tokenExpires := handlers.GenerateToken(userID, secretKey, "10h")
 	hashedPassword, bcrypteErr := bcrypt.GenerateFromPassword([]byte("123"), 4)
 	if bcrypteErr != nil {
 		log.Println(bcrypteErr)
@@ -42,7 +42,7 @@ func TestPostOrder(t *testing.T) {
 	}
 
 	subUserID := uuid.New()
-	subToken, subTokenExpires := GenerateToken(subUserID, secretKey, "10h")
+	subToken, subTokenExpires := handlers.GenerateToken(subUserID, secretKey, "10h")
 	subHashedPassword, subBcrypteErr := bcrypt.GenerateFromPassword([]byte("123"), 4)
 	if subBcrypteErr != nil {
 		log.Println(subBcrypteErr)
@@ -126,7 +126,7 @@ func TestPostOrder(t *testing.T) {
 			},
 		},
 	}
-	Routes := *controllers.Routes(database, secretKey, "10h")
+	Routes := *Routes(database, secretKey, "10h")
 	ts := httptest.NewServer(&Routes)
 	defer ts.Close()
 
@@ -157,7 +157,7 @@ func TestGetOrders(t *testing.T) {
 	var secretKey = []byte("G0pher")
 
 	userID := uuid.New()
-	token, tokenExpires := GenerateToken(userID, secretKey, "10h")
+	token, tokenExpires := handlers.GenerateToken(userID, secretKey, "10h")
 	hashedPassword, bcrypteErr := bcrypt.GenerateFromPassword([]byte("123"), 4)
 	if bcrypteErr != nil {
 		log.Println(bcrypteErr)
@@ -176,7 +176,7 @@ func TestGetOrders(t *testing.T) {
 	}
 
 	subUserID := uuid.New()
-	subToken, subTokenExpires := GenerateToken(subUserID, secretKey, "10h")
+	subToken, subTokenExpires := handlers.GenerateToken(subUserID, secretKey, "10h")
 	subHashedPassword, subBcrypteErr := bcrypt.GenerateFromPassword([]byte("123"), 4)
 	if subBcrypteErr != nil {
 		log.Println(subBcrypteErr)
@@ -245,7 +245,7 @@ func TestGetOrders(t *testing.T) {
 			},
 		},
 	}
-	Routes := *controllers.Routes(database, secretKey, "10h")
+	Routes := *Routes(database, secretKey, "10h")
 	ts := httptest.NewServer(&Routes)
 	defer ts.Close()
 

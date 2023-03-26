@@ -1,9 +1,9 @@
-package handlers
+package controllers
 
 import (
 	"bytes"
 	"fmt"
-	"github.com/ShishkovEM/amazing-gophermart/internal/app/controllers"
+	"github.com/ShishkovEM/amazing-gophermart/internal/app/handlers"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -22,7 +22,7 @@ func TestGetBalance(t *testing.T) {
 	var secretKey = []byte("G0pher")
 
 	userID := uuid.New()
-	token, tokenExpires := GenerateToken(userID, secretKey, "10h")
+	token, tokenExpires := handlers.GenerateToken(userID, secretKey, "10h")
 	hashedPassword, bcrypteErr := bcrypt.GenerateFromPassword([]byte("123"), 4)
 	if bcrypteErr != nil {
 		log.Println(bcrypteErr)
@@ -76,7 +76,7 @@ func TestGetBalance(t *testing.T) {
 			},
 		},
 	}
-	Routes := *controllers.Routes(database, secretKey, "10h")
+	Routes := *Routes(database, secretKey, "10h")
 	ts := httptest.NewServer(&Routes)
 	defer ts.Close()
 
@@ -108,7 +108,7 @@ func TestWithdraws(t *testing.T) {
 	var secretKey = []byte("G0pher")
 
 	userID := uuid.New()
-	token, tokenExpires := GenerateToken(userID, secretKey, "10h")
+	token, tokenExpires := handlers.GenerateToken(userID, secretKey, "10h")
 	hashedPassword, bcrypteErr := bcrypt.GenerateFromPassword([]byte("123"), 4)
 	if bcrypteErr != nil {
 		log.Println(bcrypteErr)
@@ -204,7 +204,7 @@ func TestWithdraws(t *testing.T) {
 			},
 		},
 	}
-	Routes := *controllers.Routes(database, secretKey, "10h")
+	Routes := *Routes(database, secretKey, "10h")
 	ts := httptest.NewServer(&Routes)
 	defer ts.Close()
 

@@ -1,8 +1,10 @@
-package handlers
+package controllers
 
 import (
 	"fmt"
 	"testing"
+
+	"github.com/ShishkovEM/amazing-gophermart/internal/app/handlers"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -33,7 +35,7 @@ func TestValid(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			res := valid(tt.arg)
+			res := handlers.Valid(tt.arg)
 			assert.Equal(t, tt.want.res, res, fmt.Errorf("expected result %t, got %t", tt.want.res, res))
 		})
 	}

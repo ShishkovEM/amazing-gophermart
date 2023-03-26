@@ -84,7 +84,7 @@ func Withdraw(w http.ResponseWriter, r *http.Request, storage *storage.Storage, 
 		return
 	}
 
-	if !valid(orderNum) {
+	if !Valid(orderNum) {
 		messageResponse(w, "invalid order number format", "application/json", http.StatusUnprocessableEntity)
 		return
 	}
