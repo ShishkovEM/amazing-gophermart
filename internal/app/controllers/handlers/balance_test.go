@@ -1,8 +1,9 @@
-package controllers
+package handlers
 
 import (
 	"bytes"
 	"fmt"
+	"github.com/ShishkovEM/amazing-gophermart/internal/app/controllers"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -16,101 +17,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var migrationsDir = "file://../../../schema"
-
-func TestUserRegistration(t *testing.T) {
-	database, dbErr := storage.NewStorage("postgres://junvlkns:BKHdP45va97hTKwWld-6fg85etq62rP8@trumpet.db.elephantsql.com/junvlkns", migrationsDir)
-	var secretKey = []byte("G0pher")
-
-	if dbErr != nil {
-		log.Fatal(dbErr)
-	}
-	type want struct {
-		code            int
-		location        string
-		contentType     string
-		contentEncoding string
-		responseFormat  bool
-		response        string
-	}
-
-	tests := []struct {
-		name                   string
-		request                string
-		requestPath            string
-		requestMethod          string
-		requestBody            string
-		requestCompressBody    []byte
-		requestContentType     string
-		requestAcceptEncoding  string
-		requestContentEncoding string
-		want                   want
-	}{
-		{
-			name:               fmt.Sprintf("%s positive test #1", http.MethodPost),
-			requestMethod:      http.MethodPost,
-			requestContentType: "application/json",
-			requestBody:        `{"login": "test", "password": "123"}`,
-			requestPath:        "/api/user/register",
-			want: want{
-				code: http.StatusOK,
-			},
-		},
-		{
-			name:               fmt.Sprintf("%s negative test #1", http.MethodPost),
-			requestMethod:      http.MethodPost,
-			requestContentType: "application/json",
-			requestBody:        `{"login": "test", "passord": "123"}`,
-			requestPath:        "/api/user/register",
-			want: want{
-				code: http.StatusBadRequest,
-			},
-		},
-		{
-			name:               fmt.Sprintf("%s negative test #2", http.MethodPost),
-			requestMethod:      http.MethodPost,
-			requestContentType: "application/json",
-			requestBody:        `{"login": "test", "password": "123", "asdqs" : 123}`,
-			requestPath:        "/api/user/register",
-			want: want{
-				code: http.StatusBadRequest,
-			},
-		},
-		{
-			name:               fmt.Sprintf("%s negative test #3", http.MethodPost),
-			requestMethod:      http.MethodPost,
-			requestContentType: "application/json",
-			requestBody:        `{"login": "test", "password": 123}`,
-			requestPath:        "/api/user/register",
-			want: want{
-				code: http.StatusBadRequest,
-			},
-		},
-	}
-	Routes := *Routes(database, secretKey, "10h")
-	ts := httptest.NewServer(&Routes)
-	defer ts.Close()
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			reqBody := []byte(tt.requestBody)
-			reqURL := tt.requestPath + tt.request
-			request := httptest.NewRequest(tt.requestMethod, reqURL, bytes.NewBuffer(reqBody))
-			request.Header.Set("Content-Type", tt.requestContentType)
-			// создаём новый Recorder
-			w := httptest.NewRecorder()
-			Routes.ServeHTTP(w, request)
-			resp := w.Result()
-			defer resp.Body.Close()
-			// Проверяем StatusCode
-			respStatusCode := resp.StatusCode
-			wantStatusCode := tt.want.code
-			assert.Equal(t, respStatusCode, wantStatusCode, fmt.Errorf("expected StatusCode %d, got %d", wantStatusCode, respStatusCode))
-		})
-	}
-}
-
-func TestUserAuthentication(t *testing.T) {
+func TestGetBalance(t *testing.T) {
 	database, dbErr := storage.NewStorage("postgres://junvlkns:BKHdP45va97hTKwWld-6fg85etq62rP8@trumpet.db.elephantsql.com/junvlkns", migrationsDir)
 	var secretKey = []byte("G0pher")
 
@@ -128,7 +35,10 @@ func TestUserAuthentication(t *testing.T) {
 		TokenExpires: tokenExpires,
 	}
 
-	database.Repo.CreateUser(&user)
+	newUserErr := database.Repo.CreateUser(&user)
+	if newUserErr != nil {
+		log.Println("New User Error", newUserErr)
+	}
 
 	if dbErr != nil {
 		log.Fatal(dbErr)
@@ -152,50 +62,21 @@ func TestUserAuthentication(t *testing.T) {
 		requestContentType     string
 		requestAcceptEncoding  string
 		requestContentEncoding string
+		requestCookie          string
+		requestToken           string
 		want                   want
 	}{
 		{
-			name:               fmt.Sprintf("%s positive test #1", http.MethodPost),
-			requestMethod:      http.MethodPost,
-			requestContentType: "application/json",
-			requestBody:        `{"login": "test", "password": "123"}`,
-			requestPath:        "/api/user/login",
+			name:          fmt.Sprintf("%s test #1", http.MethodGet),
+			requestMethod: http.MethodGet,
+			requestPath:   "/api/user/balance",
+			requestToken:  "",
 			want: want{
-				code: http.StatusOK,
-			},
-		},
-		{
-			name:               fmt.Sprintf("%s negative test #1", http.MethodPost),
-			requestMethod:      http.MethodPost,
-			requestContentType: "application/json",
-			requestBody:        `{"login": "test", "passord": "123"}`,
-			requestPath:        "/api/user/login",
-			want: want{
-				code: http.StatusBadRequest,
-			},
-		},
-		{
-			name:               fmt.Sprintf("%s negative test #2", http.MethodPost),
-			requestMethod:      http.MethodPost,
-			requestContentType: "application/json",
-			requestBody:        `{"login": "test", "password": "123", "asdqs" : 123}`,
-			requestPath:        "/api/user/login",
-			want: want{
-				code: http.StatusBadRequest,
-			},
-		},
-		{
-			name:               fmt.Sprintf("%s negative test #3", http.MethodPost),
-			requestMethod:      http.MethodPost,
-			requestContentType: "application/json",
-			requestBody:        `{"login": "test", "password": 123}`,
-			requestPath:        "/api/user/login",
-			want: want{
-				code: http.StatusBadRequest,
+				code: http.StatusUnauthorized,
 			},
 		},
 	}
-	Routes := *Routes(database, secretKey, "10h")
+	Routes := *controllers.Routes(database, secretKey, "10h")
 	ts := httptest.NewServer(&Routes)
 	defer ts.Close()
 
@@ -205,6 +86,10 @@ func TestUserAuthentication(t *testing.T) {
 			reqURL := tt.requestPath + tt.request
 			request := httptest.NewRequest(tt.requestMethod, reqURL, bytes.NewBuffer(reqBody))
 			request.Header.Set("Content-Type", tt.requestContentType)
+			request.Header.Set("Cookie", tt.requestCookie)
+			if len(tt.requestToken) > 0 {
+				request.Header.Set("Authorization", tt.requestToken)
+			}
 			// создаём новый Recorder
 			w := httptest.NewRecorder()
 			Routes.ServeHTTP(w, request)
@@ -213,7 +98,141 @@ func TestUserAuthentication(t *testing.T) {
 			// Проверяем StatusCode
 			respStatusCode := resp.StatusCode
 			wantStatusCode := tt.want.code
-			assert.Equal(t, respStatusCode, wantStatusCode, fmt.Errorf("expected StatusCode %d, got %d", wantStatusCode, respStatusCode))
+			assert.Equal(t, wantStatusCode, respStatusCode, fmt.Errorf("expected StatusCode %d, got %d", wantStatusCode, respStatusCode))
+		})
+	}
+}
+
+func TestWithdraws(t *testing.T) {
+	database, dbErr := storage.NewStorage("postgres://junvlkns:BKHdP45va97hTKwWld-6fg85etq62rP8@trumpet.db.elephantsql.com/junvlkns", migrationsDir)
+	var secretKey = []byte("G0pher")
+
+	userID := uuid.New()
+	token, tokenExpires := GenerateToken(userID, secretKey, "10h")
+	hashedPassword, bcrypteErr := bcrypt.GenerateFromPassword([]byte("123"), 4)
+	if bcrypteErr != nil {
+		log.Println(bcrypteErr)
+	}
+	user := models.User{
+		ID:           userID,
+		Username:     "test",
+		Password:     string(hashedPassword),
+		Token:        token,
+		TokenExpires: tokenExpires,
+	}
+	userToken := fmt.Sprintf("Bearer %s", token)
+
+	newUserErr := database.Repo.CreateUser(&user)
+	if newUserErr != nil {
+		log.Println("New User Error", newUserErr)
+	}
+
+	if dbErr != nil {
+		log.Fatal(dbErr)
+	}
+	type want struct {
+		code            int
+		location        string
+		contentType     string
+		contentEncoding string
+		responseFormat  bool
+		response        string
+	}
+
+	tests := []struct {
+		name                   string
+		request                string
+		requestPath            string
+		requestMethod          string
+		requestBody            string
+		requestCompressBody    []byte
+		requestContentType     string
+		requestAcceptEncoding  string
+		requestContentEncoding string
+		requestToken           string
+		want                   want
+	}{
+		{
+			name:          fmt.Sprintf("%s no content #1", http.MethodGet),
+			requestMethod: http.MethodGet,
+			requestPath:   "/api/user/withdrawals",
+			requestToken:  userToken,
+			want: want{
+				code: http.StatusNoContent,
+			},
+		},
+		{
+			name:          fmt.Sprintf("%s negative Unauthorized #1", http.MethodGet),
+			requestMethod: http.MethodGet,
+			requestPath:   "/api/user/withdrawals",
+			requestToken:  "",
+			want: want{
+				code: http.StatusUnauthorized,
+			},
+		},
+		{
+			name:               fmt.Sprintf("%s add order to base", http.MethodPost),
+			requestMethod:      http.MethodPost,
+			requestContentType: "text/plain",
+			requestBody:        "12345678903", // новый номер заказа принят в обработку
+			requestPath:        "/api/user/orders",
+			requestToken:       userToken,
+			want: want{
+				code: http.StatusAccepted,
+			},
+		},
+		{
+			name:               fmt.Sprintf("%s nagetive Unauthorized #2", http.MethodPost),
+			requestMethod:      http.MethodPost,
+			requestPath:        "/api/user/balance/withdraw",
+			requestContentType: "application/json",
+			requestBody:        `{"order": "2377225624", "sum": 500}`,
+			requestToken:       "",
+			want: want{
+				code: http.StatusUnauthorized,
+			},
+		},
+		{
+			name:               fmt.Sprintf("%s negative withdraw wrong number", http.MethodPost),
+			requestMethod:      http.MethodPost,
+			requestPath:        "/api/user/balance/withdraw",
+			requestContentType: "application/json",
+			requestBody:        `{"order": "123", "sum": 500}`,
+			requestToken:       userToken,
+			want: want{
+				code: http.StatusUnprocessableEntity,
+			},
+		},
+	}
+	Routes := *controllers.Routes(database, secretKey, "10h")
+	ts := httptest.NewServer(&Routes)
+	defer ts.Close()
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			reqBody := []byte(tt.requestBody)
+			reqURL := tt.requestPath + tt.request
+			request := httptest.NewRequest(tt.requestMethod, reqURL, bytes.NewBuffer(reqBody))
+			request.Header.Set("Content-Type", tt.requestContentType)
+			if len(tt.requestToken) > 0 {
+				request.Header.Set("Authorization", tt.requestToken)
+			}
+			// создаём новый Recorder
+			w := httptest.NewRecorder()
+			Routes.ServeHTTP(w, request)
+			resp := w.Result()
+			defer resp.Body.Close()
+			// Проверяем StatusCode
+			respStatusCode := resp.StatusCode
+			wantStatusCode := tt.want.code
+			if tt.requestPath == "/api/user/orders" {
+				database.Repo.UpdateOrder(models.ProcessingOrder{
+					OrderNum: tt.requestBody,
+					Status:   "PROCESSED",
+					Accrual:  1000.00,
+				})
+			}
+			assert.Equal(t, wantStatusCode, respStatusCode, fmt.Errorf("expected StatusCode %d, got %d", wantStatusCode, respStatusCode))
 		})
 	}
 }

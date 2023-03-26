@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/ShishkovEM/amazing-gophermart/internal/app/controllers/handlers"
 	"log"
 	"net/http"
 
@@ -10,7 +11,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func Routes(storage *storage.Storage, secretKey []byte, cookieLifetime string) *chi.Mux {
+func Routes(storage *storage.Storage, secretKey []byte, tokenLifetime string) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
@@ -18,15 +19,18 @@ func Routes(storage *storage.Storage, secretKey []byte, cookieLifetime string) *
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.AllowContentEncoding("gzip"))
 	r.Use(middleware.AllowContentType("application/json", "text/plain", "application/x-gzip"))
-	r.Use(middleware.Compress(5, gzipContentTypes))
+	r.Use(middleware.Compress(5, handlers.GzipContentTypes))
 	r.Mount("/debug", middleware.Profiler())
-	r.Post("/api/user/register", UserRegistration(storage, secretKey, cookieLifetime))
-	r.Post("/api/user/login", UserAuthentication(storage))
-	r.Post("/api/user/orders", PostOrder(storage, secretKey))
-	r.Get("/api/user/orders", GetOrders(storage, secretKey))
-	r.Get("/api/user/balance", GetBalance(storage, secretKey))
-	r.Post("/api/user/balance/withdraw", Withdraw(storage, secretKey))
-	r.Get("/api/user/withdrawals", GetAllWithdrawals(storage, secretKey))
+
+	uc := NewUserController(storage, secretKey, tokenLifetime)
+
+	r.Post("/api/user/register", uc.Register)
+	r.Post("/api/user/login", uc.Login)
+	r.Post("/api/user/orders", uc.PostOrder)
+	r.Get("/api/user/orders", uc.GetOrders)
+	r.Get("/api/user/balance", uc.GetBalance)
+	r.Post("/api/user/balance/withdraw", uc.Withdraw)
+	r.Get("/api/user/withdrawals", uc.GetAllWithdrawals)
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)

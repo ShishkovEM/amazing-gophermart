@@ -1,4 +1,4 @@
-package controllers
+package handlers
 
 import (
 	"bytes"
@@ -16,7 +16,7 @@ import (
 	"github.com/google/uuid"
 )
 
-var gzipContentTypes = "application/x-gzip, application/javascript, application/json, text/css, text/html, text/plain, text/xml"
+var GzipContentTypes = "application/x-gzip, application/javascript, application/json, text/css, text/html, text/plain, text/xml"
 
 func messageResponse(w http.ResponseWriter, message, ContentType string, httpStatusCode int) {
 	w.Header().Set("Content-Type", ContentType)

@@ -1,8 +1,9 @@
-package controllers
+package handlers
 
 import (
 	"bytes"
 	"fmt"
+	"github.com/ShishkovEM/amazing-gophermart/internal/app/controllers"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -125,7 +126,7 @@ func TestPostOrder(t *testing.T) {
 			},
 		},
 	}
-	Routes := *Routes(database, secretKey, "10h")
+	Routes := *controllers.Routes(database, secretKey, "10h")
 	ts := httptest.NewServer(&Routes)
 	defer ts.Close()
 
@@ -244,7 +245,7 @@ func TestGetOrders(t *testing.T) {
 			},
 		},
 	}
-	Routes := *Routes(database, secretKey, "10h")
+	Routes := *controllers.Routes(database, secretKey, "10h")
 	ts := httptest.NewServer(&Routes)
 	defer ts.Close()
 
