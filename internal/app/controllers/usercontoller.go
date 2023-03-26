@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/ShishkovEM/amazing-gophermart/internal/app/controllers/handlers"
+	handlers2 "github.com/ShishkovEM/amazing-gophermart/internal/app/handlers"
 	"net/http"
 
 	"github.com/ShishkovEM/amazing-gophermart/internal/app/storage"
@@ -18,29 +18,29 @@ func NewUserController(storage *storage.Storage, secretKey []byte, tokenLifetime
 }
 
 func (uc *UserController) Register(w http.ResponseWriter, r *http.Request) {
-	handlers.UserRegistration(w, r, uc.storage, uc.secretKey, uc.tokenLifetime)
+	handlers2.UserRegistration(w, r, uc.storage, uc.secretKey, uc.tokenLifetime)
 }
 
 func (uc *UserController) Login(w http.ResponseWriter, r *http.Request) {
-	handlers.UserAuthentication(w, r, uc.storage)
+	handlers2.UserAuthentication(w, r, uc.storage)
 }
 
 func (uc *UserController) PostOrder(w http.ResponseWriter, r *http.Request) {
-	handlers.PostOrder(w, r, uc.storage, uc.secretKey)
+	handlers2.PostOrder(w, r, uc.storage, uc.secretKey)
 }
 
 func (uc *UserController) GetOrders(w http.ResponseWriter, r *http.Request) {
-	handlers.GetOrders(w, r, uc.storage, uc.secretKey)
+	handlers2.GetOrders(w, r, uc.storage, uc.secretKey)
 }
 
 func (uc *UserController) GetBalance(w http.ResponseWriter, r *http.Request) {
-	handlers.GetBalance(w, r, uc.storage, uc.secretKey)
+	handlers2.GetBalance(w, r, uc.storage, uc.secretKey)
 }
 
 func (uc *UserController) Withdraw(w http.ResponseWriter, r *http.Request) {
-	handlers.Withdraw(w, r, uc.storage, uc.secretKey)
+	handlers2.Withdraw(w, r, uc.storage, uc.secretKey)
 }
 
 func (uc *UserController) GetAllWithdrawals(w http.ResponseWriter, r *http.Request) {
-	handlers.GetAllWithdrawals(w, r, uc.storage, uc.secretKey)
+	handlers2.GetAllWithdrawals(w, r, uc.storage, uc.secretKey)
 }

@@ -1,10 +1,10 @@
 package controllers
 
 import (
-	"github.com/ShishkovEM/amazing-gophermart/internal/app/controllers/handlers"
 	"log"
 	"net/http"
 
+	"github.com/ShishkovEM/amazing-gophermart/internal/app/handlers"
 	"github.com/ShishkovEM/amazing-gophermart/internal/app/storage"
 
 	"github.com/go-chi/chi/v5"
