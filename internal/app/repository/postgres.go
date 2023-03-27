@@ -160,13 +160,13 @@ func (pdb *PostgresDB) ReadOrders(userID uuid.UUID) ([]*models.OrderDB, error) {
 
 func (pdb *PostgresDB) ReadBalance(userID uuid.UUID) (*models.Balance, error) {
 	var balance models.Balance
-	err := pdb.pool.QueryRow(context.Background(), "SELECT sum(accrual) FROM orders WHERE (user_id=$1 AND status='WITHDRAWAL');", userID).Scan(&balance.Withdraw)
+	err := pdb.pool.QueryRow(context.Background(), "SELECT SUM(accrual) FROM orders WHERE (user_id=$1 AND status='WITHDRAWAL');", userID).Scan(&balance.Withdraw)
 	if err != nil {
 		log.Println(err)
 		return &balance, err
 	}
 	var sum float32
-	err = pdb.pool.QueryRow(context.Background(), "SELECT sum(accrual) FROM orders WHERE (user_id=$1 AND status IN('PROCESSED'));", userID).Scan(&sum)
+	err = pdb.pool.QueryRow(context.Background(), "SELECT SUM(accrual) FROM orders WHERE (user_id=$1 AND status!='WITHDRAWAL');", userID).Scan(&sum)
 	if err != nil {
 		log.Println(err)
 		return &balance, err
@@ -189,7 +189,7 @@ func (pdb *PostgresDB) CreateWithdrawal(withdraw *models.Withdraw) error {
 
 func (pdb *PostgresDB) ReadAllWithdrawals(userID uuid.UUID) ([]*models.WithdrawDB, error) {
 	var withdrawals []*models.WithdrawDB
-	rows, err := pdb.pool.Query(context.Background(), "SELECT order_num, accrual, created_at FROM orders WHERE (user_id=$1 AND status = 'WITHDRAWAL') ORDER BY created_at", userID)
+	rows, err := pdb.pool.Query(context.Background(), "SELECT order_num, accrual, created_at FROM orders WHERE (user_id=$1 AND status='WITHDRAWAL') ORDER BY created_at", userID)
 	if err != nil {
 		log.Println(err)
 		return withdrawals, err
