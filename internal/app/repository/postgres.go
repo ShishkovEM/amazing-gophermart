@@ -160,13 +160,23 @@ func (pdb *PostgresDB) ReadOrders(userID uuid.UUID) ([]*models.OrderDB, error) {
 
 func (pdb *PostgresDB) ReadBalance(userID uuid.UUID) (*models.Balance, error) {
 	var balance models.Balance
-	err := pdb.pool.QueryRow(context.Background(), "SELECT withdraw, \"current\" FROM balance WHERE user_id=$1;", userID).Scan(&balance.Withdraw, &balance.Current)
+	err := pdb.pool.QueryRow(context.Background(), `
+        SELECT
+            COALESCE(SUM(CASE WHEN orders.created_at IS NULL AND withdrawn_at IS NOT NULL THEN withdrawal ELSE 0 END), 0)::NUMERIC(10, 2) withdraw,
+            COALESCE(SUM(CASE WHEN orders.created_at IS NOT NULL AND withdrawn_at IS NULL THEN accrual ELSE 0 END), 0)::NUMERIC(10, 2) - COALESCE(SUM(CASE WHEN orders.created_at IS NULL AND withdrawn_at IS NOT NULL THEN withdrawal ELSE 0 END), 0)::NUMERIC(10, 2) "current"
+        FROM
+            users
+            LEFT JOIN orders ON orders.user_id = users.id
+        WHERE
+            users.id = $1
+        GROUP BY
+            users.id;
+    `, userID).Scan(&balance.Withdraw, &balance.Current)
 	if err != nil {
 		log.Println(err)
 		return &balance, err
 	}
-
-	return &balance, nil
+	return &balance, err
 }
 
 func (pdb *PostgresDB) CreateWithdrawal(withdraw *models.Withdraw) error {
