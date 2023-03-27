@@ -160,7 +160,8 @@ func (pdb *PostgresDB) ReadOrders(userID uuid.UUID) ([]*models.OrderDB, error) {
 
 func (pdb *PostgresDB) ReadBalance(userID uuid.UUID) (*models.Balance, error) {
 	var balance models.Balance
-	err := pdb.pool.QueryRow(context.Background(), "SELECT sum(-accrual) FROM orders WHERE (user_id=$1 AND status IN('WITHDRAWAL'));", userID).Scan(&balance.Withdraw)
+	err := pdb.pool.QueryRow(context.Background(), "SELECT sum(accrual) FROM orders WHERE (user_id=$1 AND status IN('WITHDRAWAL'));", userID).Scan(&balance.Withdraw)
+	balance.Withdraw = -balance.Withdraw
 	if err != nil {
 		log.Println(err)
 		return &balance, err
@@ -175,7 +176,9 @@ func (pdb *PostgresDB) ReadBalance(userID uuid.UUID) (*models.Balance, error) {
 }
 
 func (pdb *PostgresDB) CreateWithdrawal(withdraw *models.Withdraw) error {
-	_, err := pdb.pool.Exec(context.Background(), "INSERT INTO orders (user_id, order_num, accrual, status, created_at) VALUES ($1, $2, $3, 'WITHDRAWAL', now()) ON CONFLICT (order_num) DO NOTHING", withdraw.UserID, withdraw.OrderNum, -withdraw.Withdraw)
+	withdraw.Withdraw = -withdraw.Withdraw
+
+	_, err := pdb.pool.Exec(context.Background(), "INSERT INTO orders (user_id, order_num, accrual, status, created_at) VALUES ($1, $2, $3, 'WITHDRAWAL', now()) ON CONFLICT (order_num) DO NOTHING", withdraw.UserID, withdraw.OrderNum, withdraw.Withdraw)
 
 	if err != nil && strings.Contains(err.Error(), pgerrcode.UniqueViolation) {
 		return exceptions.ErrDuplicatePK
@@ -199,6 +202,7 @@ func (pdb *PostgresDB) ReadAllWithdrawals(userID uuid.UUID) ([]*models.WithdrawD
 		if err != nil {
 			return nil, err
 		}
+		withdrawal.Withdraw = -withdrawal.Withdraw
 
 		withdrawals = append(withdrawals, &withdrawal)
 	}
