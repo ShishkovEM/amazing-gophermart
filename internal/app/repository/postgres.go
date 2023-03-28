@@ -134,7 +134,7 @@ func (pdb *PostgresDB) CreateOrder(order *models.Order) error {
 
 func (pdb *PostgresDB) ReadOrders(userID uuid.UUID) ([]*models.OrderDB, error) {
 	orders := make([]*models.OrderDB, 0)
-	rows, err := pdb.pool.Query(context.Background(), "SELECT order_num, accrual, status, created_at FROM orders WHERE (user_id=$1 AND created_at IS NOT NULL) ORDER BY created_at;", userID)
+	rows, err := pdb.pool.Query(context.Background(), "SELECT order_num, accrual, status, created_at FROM orders WHERE (user_id=$1 AND status NOT IN ('WITHDRAWAL')) ORDER BY created_at;", userID)
 	if err != nil {
 		log.Println(err)
 		return orders, err
@@ -162,8 +162,8 @@ func (pdb *PostgresDB) ReadBalance(userID uuid.UUID) (*models.Balance, error) {
 	var balance models.Balance
 	err := pdb.pool.QueryRow(context.Background(), `
         SELECT
-            COALESCE(SUM(CASE WHEN orders.created_at IS NULL AND withdrawn_at IS NOT NULL THEN withdrawal ELSE 0 END), 0)::NUMERIC(10, 2) withdraw,
-            COALESCE(SUM(CASE WHEN orders.created_at IS NOT NULL AND withdrawn_at IS NULL THEN accrual ELSE 0 END), 0)::NUMERIC(10, 2) - COALESCE(SUM(CASE WHEN orders.created_at IS NULL AND withdrawn_at IS NOT NULL THEN withdrawal ELSE 0 END), 0)::NUMERIC(10, 2) "current"
+            COALESCE(SUM(CASE WHEN orders.status IN ('WITHDRAWAL') THEN accrual ELSE 0 END), 0)::NUMERIC(10, 2) withdraw,
+            COALESCE(SUM(CASE WHEN orders.status NOT IN ('WITHDRAWAL') THEN accrual ELSE 0 END), 0)::NUMERIC(10, 2) - COALESCE(SUM(CASE WHEN orders.status IN ('WITHDRAWAL') THEN accrual ELSE 0 END), 0)::NUMERIC(10, 2) "current"
         FROM
             users
             LEFT JOIN orders ON orders.user_id = users.id
@@ -180,7 +180,7 @@ func (pdb *PostgresDB) ReadBalance(userID uuid.UUID) (*models.Balance, error) {
 }
 
 func (pdb *PostgresDB) CreateWithdrawal(withdraw *models.Withdraw) error {
-	_, err := pdb.pool.Exec(context.Background(), "INSERT INTO orders (user_id, order_num, withdrawal, withdrawn_at) VALUES ($1, $2, $3, now()) ON CONFLICT (order_num) DO NOTHING", withdraw.UserID, withdraw.OrderNum, withdraw.Withdraw)
+	_, err := pdb.pool.Exec(context.Background(), "INSERT INTO orders (user_id, order_num, accrual, created_at, status) VALUES ($1, $2, $3, now(), 'WITHDRAWAL') ON CONFLICT (order_num) DO NOTHING", withdraw.UserID, withdraw.OrderNum, withdraw.Withdraw)
 
 	if err != nil && strings.Contains(err.Error(), pgerrcode.UniqueViolation) {
 		return exceptions.ErrDuplicatePK
@@ -191,7 +191,7 @@ func (pdb *PostgresDB) CreateWithdrawal(withdraw *models.Withdraw) error {
 
 func (pdb *PostgresDB) ReadAllWithdrawals(userID uuid.UUID) ([]*models.WithdrawDB, error) {
 	var withdrawals []*models.WithdrawDB
-	rows, err := pdb.pool.Query(context.Background(), "SELECT order_num, withdrawal, withdrawn_at FROM orders WHERE (user_id=$1 AND withdrawn_at IS NOT NULL) ORDER BY withdrawn_at", userID)
+	rows, err := pdb.pool.Query(context.Background(), "SELECT order_num, accrual, created_at FROM orders WHERE (user_id=$1 AND status IN ('WITHDRAWAL')) ORDER BY created_at", userID)
 	if err != nil {
 		log.Println(err)
 		return withdrawals, err
